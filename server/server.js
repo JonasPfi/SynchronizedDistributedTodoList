@@ -141,7 +141,7 @@ app.delete('/database/:id', (req, res) => {
 
     // Actual executing the query to delete it from the server
     // Please keep in mind to secure this for SQL injection!
-    connection.query("DELETE FROM `table1` WHERE `table1`.`task_id` = " + id + ";", function (error, results, fields) {
+    connection.query("DELETE FROM `table1` WHERE `table1`.`task_id` = ?", [id], function (error, results, fields) {
         if (error) {
             // we got an errror - inform the client
             console.error(error); // <- log error in server
