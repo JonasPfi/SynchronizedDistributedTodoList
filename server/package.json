@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "express": "^4.19",
-    "mysql": "^2.18"
+    "mysql": "^2.18",
+    "socket.io": "^4.7.5"
   }
 }

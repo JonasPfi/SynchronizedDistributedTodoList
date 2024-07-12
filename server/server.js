@@ -1,6 +1,8 @@
 'use strict';
 
 const express = require('express');
+const cors = require('cors');
+const socketIO = require('socket.io');
 
 // Database
 const mysql = require('mysql');
@@ -197,8 +199,22 @@ app.post('/database', (req, res) => {
 app.use('/static', express.static('public'))
 
 // Start the actual server
-app.listen(PORT, HOST);
+const expressServer = app.listen(PORT, HOST);
 console.log(`Running on http://${HOST}:${PORT}`);
+
+const io = socketIO(expressServer, {
+    cors: {
+        origin: "*",
+    },
+});
+
+io.on("connection", async (socket) => {
+    console.log("A user connected", socket.id);
+
+    socket.on("disconnect", () => {
+        console.log("A user disconnected");
+    });
+});
 
 // Start database connection
 const sleep = (milliseconds) => {
