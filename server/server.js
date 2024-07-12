@@ -1,6 +1,8 @@
 'use strict';
 
 const express = require('express');
+const cors = require('cors');
+const socketIO = require('socket.io');
 
 // Database
 const mysql = require('mysql');
@@ -153,6 +155,7 @@ app.delete('/database/:id', (req, res) => {
             res.status(200).json(results); // <- send it to client
         }
     });
+    io.emit('refreshTableData');
 });
 
 // POST path for database
@@ -186,6 +189,7 @@ app.post('/database', (req, res) => {
         // Set HTTP Status -> 400 is client error -> and send message
         res.status(400).json({ message: 'This function requries a body with "title" and "description' });
     }
+    io.emit('refreshTableData');
 });
 // ###################### DATABASE PART END ######################
 
@@ -197,8 +201,22 @@ app.post('/database', (req, res) => {
 app.use('/static', express.static('public'))
 
 // Start the actual server
-app.listen(PORT, HOST);
+const expressServer = app.listen(PORT, HOST);
 console.log(`Running on http://${HOST}:${PORT}`);
+
+const io = socketIO(expressServer, {
+    cors: {
+        origin: "*",
+    },
+});
+
+io.on("connection", async (socket) => {
+    console.log("A user connected", socket.id);
+
+    socket.on("disconnect", () => {
+        console.log("A user disconnected");
+    });
+});
 
 // Start database connection
 const sleep = (milliseconds) => {

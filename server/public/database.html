@@ -41,7 +41,15 @@
                 href="https://github.com/benjamin-salchow/verteilte-systeme-projekte/blob/master/node-client-server-extended-with-database/README.md">https://github.com/benjamin-salchow/verteilte-systeme-projekte/blob/master/node-client-server-extended-with-database/README.md</a>
         </div>
 
+        <script src="/socket.io/socket.io.js"></script>
         <script>
+            var socket = io();
+
+            // Brodcast to sync Table
+            socket.on('refreshTableData', function (data) {
+                console.log('Recieved brodcast: refreshTableData');
+                loadDoc();
+            });
 
             function showErrorAlert(message) {
                 // Write error alert:
@@ -155,6 +163,7 @@
         </script>
 
     </main><!-- /.container -->
+
 </body>
 
 </html>
