@@ -15,8 +15,6 @@ services:
     depends_on:
       - meinecooledb
   meinecooledb:
-    # Use of a modified datbase in 'db'-folder.
-    # See README.md for more information.
     build: db
     restart: always
     environment:
@@ -31,3 +29,13 @@ services:
       - 8085:80
     environment:
       PMA_HOST: meinecooledb
+  # React
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000" 
+    environment:
+      NODE_ENV: development
+    depends_on:
+      - server
