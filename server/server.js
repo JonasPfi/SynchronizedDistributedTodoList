@@ -52,9 +52,17 @@ const HOST = '0.0.0.0';
 // App
 const app = express();
 
+// Enable Cors
+app.use(cors());
+
 // Features for JSON Body
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// Basic test api call
+app.get("/api", (req, res) => {
+    res.status(200).json({ message: 'Hello from the server!' });
+  });
 
 // Entrypoint - call it with: http://localhost:8080/ -> redirect you to http://localhost:8080/static
 app.get('/', (req, res) => {
@@ -206,7 +214,7 @@ console.log(`Running on http://${HOST}:${PORT}`);
 
 const io = socketIO(expressServer, {
     cors: {
-        origin: "*",
+        origin: '*',
     },
 });
 
