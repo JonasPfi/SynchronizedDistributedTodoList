@@ -155,6 +155,7 @@ app.delete('/database/:id', (req, res) => {
             res.status(200).json(results); // <- send it to client
         }
     });
+    io.emit('refreshTableData');
 });
 
 // POST path for database
@@ -188,6 +189,7 @@ app.post('/database', (req, res) => {
         // Set HTTP Status -> 400 is client error -> and send message
         res.status(400).json({ message: 'This function requries a body with "title" and "description' });
     }
+    io.emit('refreshTableData');
 });
 // ###################### DATABASE PART END ######################
 
