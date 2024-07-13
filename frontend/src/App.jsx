@@ -22,6 +22,7 @@ function App() {
     });
   }, []);
 
+  // Loads table data with backend call
   const loadTableData = async () => {
     try {
       const response = await axios.get(`${URL}/database`);
@@ -41,6 +42,7 @@ function App() {
     setAlertType('success');
   };
 
+  // Deletes row in table with backend call
   const deleteRow = async (id) => {
     try {
       await axios.delete(`${URL}/database/${id}`);
@@ -52,6 +54,7 @@ function App() {
     }
   };
 
+  // Adds row to the table with backend call
   const addRow = async () => {
     const dataToSend = {
       title: newTitle,
@@ -68,6 +71,7 @@ function App() {
     }
   };
 
+  // basic table with interaction buttons
   return (
     <main role="main" className="container">
       <h1>Database</h1>

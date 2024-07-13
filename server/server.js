@@ -145,6 +145,7 @@ app.use('/static', express.static('public'))
 const expressServer = app.listen(PORT, HOST);
 console.log(`Running on http://${HOST}:${PORT}`);
 
+// Define SocketIO
 const io = socketIO(expressServer, {
     cors: {
         origin: '*',
