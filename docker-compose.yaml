@@ -10,6 +10,7 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_HOSTNAME: ${MYSQL_HOSTNAME}
+      FRONTEND_URL: ${FRONTEND_URL}
     links:
       - meinecooledb
     depends_on:

@@ -47,6 +47,7 @@ connection.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
 // Constants
 const PORT = process.env.PORT || 8080;
 const HOST = '0.0.0.0';
+const FRONTEND_URL = process.env.FRONTEND_URL || `http://localhost:3000/`;
 
 // App
 const app = express();
@@ -148,7 +149,7 @@ console.log(`Running on http://${HOST}:${PORT}`);
 // Define SocketIO
 const io = socketIO(expressServer, {
     cors: {
-        origin: '*',
+        origin: FRONTEND_URL,
     },
 });
 
