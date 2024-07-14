@@ -10,6 +10,7 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_HOSTNAME: ${MYSQL_HOSTNAME}
+      FRONTEND_URL: ${FRONTEND_URL}
     links:
       - meinecooledb
     depends_on:
@@ -31,3 +32,8 @@ services:
       - 8085:80
     environment:
       PMA_HOST: meinecooledb
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000" 

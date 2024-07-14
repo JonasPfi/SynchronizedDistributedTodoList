@@ -15,4 +15,4 @@ EXPOSE 8080
 # Fast PCs should be done in less than 20 sec.
 # Increase number if it does not work on your PC.
 # When the database is already created it should be 5 seconds.
-CMD sleep 30; node server.js
+CMD sleep 10; node server.js
