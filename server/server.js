@@ -149,7 +149,7 @@ console.log(`Running on http://${HOST}:${PORT}`);
 // Define SocketIO
 const io = socketIO(expressServer, {
     cors: {
-        origin: FRONTEND_URL,
+        origin: '*',
     },
 });
 
