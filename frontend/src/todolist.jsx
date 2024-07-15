@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './todolist.css';
- 
+
 const initialTasks = [
   {
     category: 'Website redesign',
@@ -29,10 +29,10 @@ const initialTasks = [
     ],
   },
 ];
- 
+
 const TaskList = () => {
   const [tasks, setTasks] = useState(initialTasks);
- 
+
   const toggleComplete = (taskId) => {
     const updatedTasks = tasks.map((taskCategory) => ({
       ...taskCategory,
@@ -42,7 +42,7 @@ const TaskList = () => {
     }));
     setTasks(updatedTasks);
   };
- 
+
   const editTask = (taskId, newName) => {
     const updatedTasks = tasks.map((taskCategory) => ({
       ...taskCategory,
@@ -52,49 +52,49 @@ const TaskList = () => {
     }));
     setTasks(updatedTasks);
   };
- 
+
   return (
-<div className="task-list">
-<h1>My Tasks</h1>
+    <div className="task-list">
+      <h1>My Tasks</h1>
       {tasks.map((taskCategory, index) => (
-<div key={index} className="task-category">
-<h2>{taskCategory.category}</h2>
-<ul>
+        <div key={index} className="task-category">
+          <h2>{taskCategory.category}</h2>
+          <ul>
             {taskCategory.tasks.map((task) => (
-<li key={task.id} className="task-item">
-<div className="task-left">
-<input
+              <li key={task.id} className={`task-item ${task.completed ? 'completed' : ''}`}>
+                <div className="task-left">
+                  <input
                     type="checkbox"
                     checked={task.completed}
                     onChange={() => toggleComplete(task.id)}
                   />
-<div className="task-name">{task.name}</div>
-</div>
-<div className="task-details">
-<span className="task-due-date">{task.dueDate}</span>
-<span className="task-project">{task.project}</span>
-<button onClick={() => {
+                  <div className="task-name">{task.name}</div>
+                </div>
+                <div className="task-details">
+                  <span className="task-due-date">{task.dueDate}</span>
+                  <span className="task-project">{task.project}</span>
+                  <button onClick={() => {
                     const newName = prompt("Edit task name:", task.name);
                     if (newName) editTask(task.id, newName);
                   }}>
                     Edit
-</button>
-</div>
-</li>
+                  </button>
+                </div>
+              </li>
             ))}
-</ul>
-</div>
+          </ul>
+        </div>
       ))}
-</div>
+    </div>
   );
 };
- 
+
 function App() {
   return (
-<div className="App">
-<TaskList />
-</div>
+    <div className="App">
+      <TaskList />
+    </div>
   );
 }
- 
+
 export default App;
