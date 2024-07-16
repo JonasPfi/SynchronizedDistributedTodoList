@@ -1,22 +1,33 @@
 body {
   margin: 0;
   font-family: 'Arial', sans-serif;
-  background-color: #ffffff;
+  background-color: #f0f4f8;
   color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Changed to flex-start to allow scrolling */
+  height: 100vh;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 .App {
-  text-align: left;
+  text-align: center;
   padding: 20px;
   max-width: 800px;
-  margin: 0 auto;
+  width: 90%;
+  margin: 20px auto; /* Added margin to allow spacing at the top and bottom */
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: calc(100vh - 40px); /* Adjusted to ensure the app fits within the viewport with some margin */
 }
 
 h1 {
   font-size: 28px;
   margin-bottom: 20px;
   color: #333;
-  border-bottom: 2px solid #333;
+  border-bottom: 2px solid #eee;
   padding-bottom: 10px;
 }
 
@@ -27,10 +38,10 @@ h1 {
 }
 
 .task-category {
-  background-color: #f9f9f9;
+  background-color: #ffffff;
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
 .task-category h2 {
@@ -42,13 +53,18 @@ h1 {
 
 .task-item {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 15px 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   margin-bottom: 10px;
+  transition: background-color 0.3s ease;
 }
 
-.task-item:last-child {
-  margin-bottom: 0;
+.task-item:hover {
+  background-color: #f1f1f1;
 }
 
 .task-left {
@@ -58,51 +74,117 @@ h1 {
 }
 
 input[type='checkbox'] {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
 }
 
 .task-name {
   font-size: 16px;
-  font-weight: bold;
   color: #333;
   text-decoration: none;
+  transition: color 0.3s ease;
 }
 
 .task-item.completed .task-name {
-  text-decoration: line-through;
   color: #888;
 }
 
 .task-details {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  font-size: 14px;
-  color: #666;
+  gap: 10px;
 }
 
 .task-due-date {
-  color: #ff5252;
+  font-size: 14px;
 }
 
-.task-project {
+.task-due-date.overdue {
+  color: red;
+}
+
+.task-due-date.ontime {
+  color: green;
+}
+
+.task-description {
   background-color: #e0e0e0;
   border-radius: 4px;
   padding: 2px 6px;
+  color: #666;
+  font-size: 14px;
 }
 
 button {
-  background-color: #333;
+  background-color: #6200ea;
   border: none;
   border-radius: 4px;
   color: #fff;
-  padding: 5px 10px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #3700b3;
+}
+
+.add-task, .add-category {
+  background-color: #6200ea;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
-button:hover {
-  background-color: #555;
+.add-task:hover, .add-category:hover {
+  background-color: #3700b3;
+}
+
+.task-filter {
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #fff;
+  transition: border-color 0.3s ease;
+}
+
+.task-filter:hover {
+  border-color: #bbb;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
 }
