@@ -8,6 +8,7 @@ body {
   align-items: flex-start; /* Changed to flex-start to allow scrolling */
   height: 100vh;
   overflow-x: hidden; /* Prevent horizontal scrolling */
+  overflow-y: hidden;
 }
 
 .App {
@@ -104,6 +105,8 @@ input[type="checkbox"] {
 .task-due-date {
   font-size: 20px;
   margin: 10px;
+  padding: 7px;
+  border-radius: 8px;
 }
 
 .task-title {
@@ -117,11 +120,11 @@ input[type="checkbox"] {
   flex-wrap: wrap;
 }
 .task-due-date.overdue {
-  color: red;
+  background-color: rgba(252, 28, 8, 0.221);
 }
 
 .task-due-date.ontime {
-  color: green;
+  background-color: rgba(5, 219, 19, 0.221);
 }
 
 .task-description {
@@ -198,4 +201,33 @@ button:hover {
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 999;
+}
+
+.ckeck-container {
+  cursor: pointer;
+}
+
+.ckeck-container input {
+  display: none;
+}
+
+.ckeck-container svg {
+  overflow: visible;
+}
+
+.path {
+  fill: none;
+  stroke: rgb(12, 6, 45);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke-dasharray 0.5s ease, stroke-dashoffset 0.5s ease;
+  stroke-dasharray: 241 9999999;
+  stroke-dashoffset: 0;
+}
+
+.ckeck-container input:checked ~ svg .path {
+  stroke-dasharray: 70.5096664428711 9999999;
+  stroke-dashoffset: -262.2723388671875;
+  stroke: rgb(5, 219, 19);
 }

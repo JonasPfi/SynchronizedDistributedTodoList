@@ -221,66 +221,71 @@ function TaskList() {
 
       <h1>Todos</h1>
       <div className="task-list">
-        {filteredTasks.map((category, index) => (
-          category.tasks.length > 0 &&(<div key={index} className="task-category">
-            
-            <h2>{category.category}</h2>
-            <ul>
-              {category.tasks.map((task) => {
-                const isOverdue = new Date(task.dueDate) < new Date();
-                return (
-                  <li
-                    key={task.id}
-                    className={`task-item ${task.completed ? "completed" : ""}`}
-                  >
-                    <div className="task-details">
-                      <div className="task-left">
-                        <input
-                          type="checkbox"
-                          checked={task.completed}
-                          onChange={() => toggleComplete(task.id)}
-                        />
-                      </div>
-                      <div className="task-title-description">
-                        <div className="task-title">
-                          <span>{task.name}</span>
+        {filteredTasks.map(
+          (category, index) =>
+            category.tasks.length > 0 && (
+              <div key={index} className="task-category">
+                <h2>{category.category}</h2>
+                <ul>
+                  {category.tasks.map((task) => {
+                    const isOverdue = new Date(task.dueDate) < new Date();
+                    return (
+                      <li
+                        key={task.id}
+                        className={`task-item ${
+                          task.completed ? "completed" : ""
+                        }`}
+                      >
+                        <div className="task-details">
+                          <label className="task-left ckeck-container">
+                            <input
+                              type="checkbox"
+                              checked={task.completed}
+                              onChange={() => toggleComplete(task.id)}
+                            />
+                            <svg viewBox="0 0 64 64" height="2em" width="2em">
+                              <path
+                                d="M 0 16 V 56 A 8 8 90 0 0 8 64 H 56 A 8 8 90 0 0 64 56 V 8 A 8 8 90 0 0 56 0 H 8 A 8 8 90 0 0 0 8 V 16 L 32 48 L 64 16 V 8 A 8 8 90 0 0 56 0 H 8 A 8 8 90 0 0 0 8 V 56 A 8 8 90 0 0 8 64 H 56 A 8 8 90 0 0 64 56 V 16"
+                                pathLength="575.0541381835938"
+                                class="path"
+                              ></path>
+                            </svg>
+                          </label>
+                          <div className="task-title-description">
+                            <div className="task-title">
+                              <span>{task.name}</span>
+                            </div>
+                            <div className="task-description">
+                              {task.description}
+                            </div>
+                          </div>
+                          <div>
+                            <label className="task-title">
+                              Due:
+                            </label>
+                            <div
+                              className={`task-due-date ${
+                                isOverdue ? "overdue" : "ontime"
+                              }`}
+                            >
+                              {new Date(task.dueDate).toLocaleDateString(
+                                "de-DE",
+                                {
+                                  year: "numeric",
+                                  month: "2-digit",
+                                  day: "2-digit",
+                                }
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="task-description">
-                          {task.description}
-                        </div>
-                      </div>
-                      <div>
-                        <div
-                          className={`task-due-date ${
-                            isOverdue ? "overdue" : "ontime"
-                          }`}
-                        >
-                          {new Date(task.dueDate).toLocaleDateString("de-DE", {
-                            year: "numeric",
-                            month: "2-digit",
-                            day: "2-digit",
-                          })}
-                        </div>
-                        <button
-                          onClick={() => {
-                            const newName = prompt(
-                              "Edit task name:",
-                              task.name
-                            );
-                            if (newName) editTask(task.id, newName);
-                          }}
-                        >
-                          Edit
-                        </button>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>)
-   
-        ))}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )
+        )}
       </div>
     </div>
   );
