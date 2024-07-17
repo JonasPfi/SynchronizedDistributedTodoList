@@ -65,14 +65,26 @@ function TaskList() {
   }, [tableData]);
 
   const toggleComplete = (taskId) => {
+    const taskElement = document.getElementById(taskId);
+  
+    if (taskElement) {
+      if (taskElement.classList.contains('completed')) {
+        taskElement.classList.remove('completed');
+      } else {
+        taskElement.classList.add('completed');
+      }
+    }
+  
     const updatedTasks = tasks.map((category) => ({
       ...category,
       tasks: category.tasks.map((task) =>
         task.id === taskId ? { ...task, completed: !task.completed } : task
       ),
     }));
+  
     setTasks(updatedTasks);
   };
+  
 
   const editTask = (taskId, newName) => {
     const updatedTasks = tasks.map((category) => ({

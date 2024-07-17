@@ -67,6 +67,11 @@ h1 {
   transition: background-color 0.3s ease;
 }
 
+.task-item.completed {
+  text-decoration: line-through;
+  color: grey;
+}
+
 .task-item:hover {
   background-color: #f1f1f1;
 }
@@ -231,3 +236,4 @@ button:hover {
   stroke-dashoffset: -262.2723388671875;
   stroke: rgb(5, 219, 19);
 }
+
