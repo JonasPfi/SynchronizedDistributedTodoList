@@ -36,7 +36,6 @@ function TaskList() {
     try {
       const response = await axios.get(`${URL}/database`);
       setTableData(response.data);
-      console.log(response.data);
     } catch (error) {
       console.error("Error loading data", error);
     }
@@ -220,10 +219,11 @@ function TaskList() {
         </>
       )}
 
-      <h1>My Tasks</h1>
+      <h1>Todos</h1>
       <div className="task-list">
         {filteredTasks.map((category, index) => (
-          <div key={index} className="task-category">
+          category.tasks.length > 0 &&(<div key={index} className="task-category">
+            
             <h2>{category.category}</h2>
             <ul>
               {category.tasks.map((task) => {
@@ -233,39 +233,53 @@ function TaskList() {
                     key={task.id}
                     className={`task-item ${task.completed ? "completed" : ""}`}
                   >
-                    <div className="task-left">
-                      <input
-                        type="checkbox"
-                        checked={task.completed}
-                        onChange={() => toggleComplete(task.id)}
-                      />
-                      <div className="task-name">{task.name}</div>
-                    </div>
                     <div className="task-details">
-                      <span
-                        className={`task-due-date ${
-                          isOverdue ? "overdue" : "ontime"
-                        }`}
-                      >
-                        {task.dueDate}
-                      </span>
-                      <span className="task-description">
-                        {task.description}
-                      </span>
-                      <button
-                        onClick={() => {
-                          const newName = prompt("Edit task name:", task.name);
-                          if (newName) editTask(task.id, newName);
-                        }}
-                      >
-                        Edit
-                      </button>
+                      <div className="task-left">
+                        <input
+                          type="checkbox"
+                          checked={task.completed}
+                          onChange={() => toggleComplete(task.id)}
+                        />
+                      </div>
+                      <div className="task-title-description">
+                        <div className="task-title">
+                          <span>{task.name}</span>
+                        </div>
+                        <div className="task-description">
+                          {task.description}
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          className={`task-due-date ${
+                            isOverdue ? "overdue" : "ontime"
+                          }`}
+                        >
+                          {new Date(task.dueDate).toLocaleDateString("de-DE", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                          })}
+                        </div>
+                        <button
+                          onClick={() => {
+                            const newName = prompt(
+                              "Edit task name:",
+                              task.name
+                            );
+                            if (newName) editTask(task.id, newName);
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </div>
                     </div>
                   </li>
                 );
               })}
             </ul>
-          </div>
+          </div>)
+   
         ))}
       </div>
     </div>
