@@ -1,23 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import socketIO from 'socket.io-client';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import socketIO from "socket.io-client";
 
-const URL = process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:8080';
+const URL =
+  process.env.NODE_ENV === "production" ? undefined : "http://localhost:8080";
 
 const socket = socketIO.connect(URL);
 
 function App() {
   const [tableData, setTableData] = useState([]);
-  const [alertMessage, setAlertMessage] = useState('');
-  const [alertType, setAlertType] = useState('');
-  const [newTitle, setNewTitle] = useState('');
-  const [newDescription, setNewDescription] = useState('');
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [newDescription, setNewDescription] = useState("");
 
   // SocketIO events
   useEffect(() => {
     loadTableData();
-    socket.on('refreshTableData', () => {
-      console.log('Received broadcast: refreshTableData');
+    socket.on("refreshTableData", () => {
+      console.log("Received broadcast: refreshTableData");
       loadTableData();
     });
   }, []);
@@ -28,18 +29,18 @@ function App() {
       const response = await axios.get(`${URL}/database`);
       setTableData(response.data);
     } catch (error) {
-      console.error('Error loading data', error);
+      console.error("Error loading data", error);
     }
   };
 
   const showErrorAlert = (message) => {
     setAlertMessage(message);
-    setAlertType('danger');
+    setAlertType("danger");
   };
 
   const showSuccessAlert = (message) => {
     setAlertMessage(message);
-    setAlertType('success');
+    setAlertType("success");
   };
 
   // Deletes row in table with backend call
@@ -49,8 +50,10 @@ function App() {
       showSuccessAlert(`Successfully deleted item: ${id}`);
       loadTableData();
     } catch (error) {
-      console.error('Error deleting item', error);
-      showErrorAlert(`ERROR on deleted item: ${id}; Message from server: ${error.response.data}`);
+      console.error("Error deleting item", error);
+      showErrorAlert(
+        `ERROR on deleted item: ${id}; Message from server: ${error.response.data}`
+      );
     }
   };
 
@@ -68,8 +71,10 @@ function App() {
       showSuccessAlert(`Successfully added item with title: ${newTitle}`);
       loadTableData();
     } catch (error) {
-      console.error('Error adding item', error);
-      showErrorAlert(`ERROR on adding new item - message from server: ${error.response.data}`);
+      console.error("Error adding item", error);
+      showErrorAlert(
+        `ERROR on adding new item - message from server: ${error.response.data}`
+      );
     }
   };
 
@@ -82,7 +87,8 @@ function App() {
       <button type="button" onClick={loadTableData} className="btn btn-primary">
         Manual refresh
       </button>
-      <br /><br />
+      <br />
+      <br />
       <div id="target">
         {tableData.length > 0 ? (
           <table className="table table-striped table-hover">
@@ -103,7 +109,10 @@ function App() {
                   <td>{row.todo_description}</td>
                   <td>{row.todo_due_date}</td>
                   <td>
-                    <button className="btn btn-danger" onClick={() => deleteRow(row.todo_id)}>
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => deleteRow(row.todo_id)}
+                    >
                       DELETE
                     </button>
                   </td>
@@ -141,7 +150,7 @@ function App() {
             </tbody>
           </table>
         ) : (
-          'Loading please wait...'
+          "Loading please wait..."
         )}
       </div>
 
@@ -152,7 +161,7 @@ function App() {
       )}
 
       <div className="alert alert-info" role="alert">
-        More information here:{' '}
+        More information here:{" "}
         <a href="https://github.com/benjamin-salchow/verteilte-systeme-projekte/blob/master/node-client-server-extended-with-database/README.md">
           https://github.com/benjamin-salchow/verteilte-systeme-projekte/blob/master/node-client-server-extended-with-database/README.md
         </a>
