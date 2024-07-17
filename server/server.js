@@ -62,7 +62,7 @@ app.use(express.json());
 
 // ###################### DATABASE PART ######################
 // GET path for database
-app.get('/database', (req, res) => {
+app.get('/todotable', (req, res) => {
     console.log("Request to load all entries from table1");
     // Prepare the get query
     connection.query("SELECT * FROM `todo`;", function (error, results, fields) {
@@ -80,7 +80,7 @@ app.get('/database', (req, res) => {
 });
 
 // DELETE path for database
-app.delete('/database/:id', (req, res) => {
+app.delete('/todotable/:id', (req, res) => {
     // This path will delete an entry. For example the path would look like DELETE '/database/5' -> This will delete number 5
     let id = req.params.id; // <- load the ID from the path
     console.log("Request to delete Item: " + id); // <- log for debugging
@@ -103,7 +103,7 @@ app.delete('/database/:id', (req, res) => {
 });
 
 // POST path for database
-app.post('/database', (req, res) => {
+app.post('/todotable', (req, res) => {
     // This will add a new row. So we're getting a JSON from the webbrowser which needs to be checked for correctness and later
     // it will be added to the database with a query.
     if (typeof req.body !== "undefined" && typeof req.body.title !== "undefined" && typeof req.body.description !== "undefined") {

@@ -75,6 +75,7 @@ const initialTasks = [
 
 function TaskList() {
   const [todoData, setTodoData] = useState([]);
+  const [categoryData, setCategoryData] = useState([]);
 
   // SocketIO events
   useEffect(() => {
@@ -88,7 +89,7 @@ function TaskList() {
   // Loads table data with backend call
   const loadTableData = async () => {
     try {
-      const response = await axios.get(`${URL}/database`);
+      const response = await axios.get(`${URL}/todotable`);
       setTodoData(response.data);
       console.log(response.data);
     } catch (error) {
