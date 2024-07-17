@@ -59,6 +59,8 @@ function App() {
     const dataToSend = {
       title: newTitle,
       description: newDescription,
+      category: 1, //For testing magic num
+      dueDate: "2024-07-31", //For testing magic num
     };
 
     try {
@@ -86,22 +88,22 @@ function App() {
           <table className="table table-striped table-hover">
             <thead>
               <tr>
-                <th scope="col">Task ID (task_id)</th>
-                <th scope="col">Title (title)</th>
-                <th scope="col">Description (description)</th>
-                <th scope="col">Created at (created_at)</th>
+                <th scope="col">Todo ID (todo_id)</th>
+                <th scope="col">Title (todo_title)</th>
+                <th scope="col">Description (todo_description)</th>
+                <th scope="col">Created at (todo_due_date)</th>
                 <th scope="col">Action</th>
               </tr>
             </thead>
             <tbody>
               {tableData.map((row) => (
-                <tr key={row.task_id}>
-                  <td>{row.task_id}</td>
-                  <td>{row.title}</td>
-                  <td>{row.description}</td>
-                  <td>{row.created_at}</td>
+                <tr key={row.todo_id}>
+                  <td>{row.todo_id}</td>
+                  <td>{row.todo_title}</td>
+                  <td>{row.todo_description}</td>
+                  <td>{row.todo_due_date}</td>
                   <td>
-                    <button className="btn btn-danger" onClick={() => deleteRow(row.task_id)}>
+                    <button className="btn btn-danger" onClick={() => deleteRow(row.todo_id)}>
                       DELETE
                     </button>
                   </td>

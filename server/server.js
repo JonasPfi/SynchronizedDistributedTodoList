@@ -65,14 +65,14 @@ app.use(express.json());
 app.get('/database', (req, res) => {
     console.log("Request to load all entries from table1");
     // Prepare the get query
-    connection.query("SELECT * FROM `table1`;", function (error, results, fields) {
+    connection.query("SELECT * FROM `todo`;", function (error, results, fields) {
         if (error) {
             // we got an errror - inform the client
             console.error(error); // <- log error in server
             res.status(500).json(error); // <- send to client
         } else {
             // we got no error - send it to the client
-            console.log('Success answer from DB: ', results); // <- log results in console
+            console.log('Success answer from DB'); // <- log results in console -> shorted to prevent console dumping
             // INFO: Here could be some code to modify the result
             res.status(200).json(results); // <- send it to client
         }
@@ -87,7 +87,7 @@ app.delete('/database/:id', (req, res) => {
 
     // Actual executing the query to delete it from the server
     // Please keep in mind to secure this for SQL injection!
-    connection.query("DELETE FROM `table1` WHERE `table1`.`task_id` = ?", [id], function (error, results, fields) {
+    connection.query("DELETE FROM `todo` WHERE `todo`.`todo_id` = ?", [id], function (error, results, fields) {
         if (error) {
             // we got an errror - inform the client
             console.error(error); // <- log error in server
@@ -111,12 +111,15 @@ app.post('/database', (req, res) => {
         // Get the content to local variables:
         var title = req.body.title;
         var description = req.body.description;
+        var category = req.body.category;
+        var dueDate = req.body.dueDate;
         console.log("Client send database insert request with 'title': " + title + " ; description: " + description); // <- log to server
         // Actual executing the query. Please keep in mind that this is for learning and education.
         // In real production environment, this has to be secure for SQL injection!
-        connection.query("INSERT INTO `table1` (`task_id`, `title`, `description`, `created_at`) VALUES (NULL, '" + title + "', '" + description + "', current_timestamp());", function (error, results, fields) {
+        const query = "INSERT INTO `todo` (`todo_id`, `todo_title`, `todo_description`, `todo_due_date`, `category_id`) VALUES (NULL, ?, ?, ?, ?)";
+        connection.query(query, [title, description, dueDate, category], function (error, results, fields) {
             if (error) {
-                // we got an errror - inform the client
+                // we got an error - inform the client
                 console.error(error); // <- log error in server
                 res.status(500).json(error); // <- send to client
             } else {
@@ -126,6 +129,7 @@ app.post('/database', (req, res) => {
                 res.status(200).json(results); // <- send it to client
             }
         });
+        
     }
     else {
         // There is nobody with a title nor description
