@@ -61,6 +61,20 @@ app.use(express.json());
 
 
 // ###################### DATABASE PART ######################
+//GET path for table data
+app.get('/database', (req, res) => {
+    console.log("Request to load all entries from category");
+    connection.query("SELECT * FROM `category` JOIN `todo` ON todo.category_id=category.category_id;", function (error, results, fields) {
+        if (error) {
+            console.error(error);
+            res.status(500).json(error);
+        } else {
+            console.log('Success answer from DB');
+            res.status(200).json(results);
+        }
+    });
+});
+
 //GET path for category table
 app.get('/categorytable', (req, res) => {
     console.log("Request to load all entries from category");

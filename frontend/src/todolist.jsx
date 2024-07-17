@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import "./css/todolist.css";
 import axios from "axios";
 import socketIO from "socket.io-client";
@@ -8,105 +8,9 @@ const URL =
 
 const socket = socketIO.connect(URL);
 
-const initialTasks = [
-  {
-    category: "Website redesign",
-    tasks: [
-      {
-        id: 1,
-        name: "Daily triage of redesign feedback",
-        dueDate: "2024-07-16",
-        description: "Website redesign",
-        completed: false,
-      },
-      {
-        id: 2,
-        name: "Launch new home page",
-        dueDate: "2024-07-24",
-        description: "Website redesign",
-        completed: false,
-      },
-    ],
-  },
-  {
-    category: "Blog & article creation",
-    tasks: [
-      {
-        id: 3,
-        name: "Review announcement blog",
-        dueDate: "2024-07-16",
-        description: "Blog Editorial Calendar",
-        completed: false,
-      },
-    ],
-  },
-  {
-    category: "Email newsletter",
-    tasks: [
-      {
-        id: 4,
-        name: "Company dogs email newsletter?",
-        dueDate: "2024-12-17",
-        description: "Email Lifecycle Marketing",
-        completed: false,
-      },
-    ],
-  },
-  {
-    category: "Q1 marketing campaign",
-    tasks: [
-      {
-        id: 5,
-        name: "Develop messaging & positioning",
-        dueDate: "2024-07-16",
-        description: "Marketing campaign plan",
-        completed: false,
-      },
-      {
-        id: 6,
-        name: "Research campaign measurement tools",
-        dueDate: "2024-07-17",
-        description: "Marketing campaign plan",
-        completed: false,
-      },
-    ],
-  },
-];
-
 function TaskList() {
-  const [todoData, setTodoData] = useState([]);
-  const [categoryData, setCategoryData] = useState([]);
-
-  // SocketIO events
-  useEffect(() => {
-    loadTableData();
-    loadCategoryData();
-    socket.on("refreshTableData", () => {
-      console.log("Received broadcast: refreshTableData");
-      loadTableData();
-    });
-  }, []);
-
-  // Loads table data with backend call
-  const loadTableData = async () => {
-    try {
-      const response = await axios.get(`${URL}/todotable`);
-      setTodoData(response.data);
-    } catch (error) {
-      console.error("Error loading data", error);
-    }
-  };
-  const loadCategoryData = async () => {
-    try {
-      const response = await axios.get(`${URL}/categorytable`);
-      setCategoryData(response.data);
-      console.log(response.data);
-    } catch (error) {
-      console.error("Error loading data", error);
-    }
-  }
-
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tableData, setTableData] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [filter, setFilter] = useState("all");
   const [newCategory, setNewCategory] = useState("");
   const [newTask, setNewTask] = useState({
@@ -118,10 +22,53 @@ function TaskList() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
 
+  // SocketIO events
+  useEffect(() => {
+    loadTableData();
+    socket.on("refreshTableData", () => {
+      console.log("Received broadcast: refreshTableData");
+      loadTableData();
+    });
+  }, []);
+
+  // Loads table data with backend call
+  const loadTableData = async () => {
+    try {
+      const response = await axios.get(`${URL}/database`);
+      setTableData(response.data);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error loading data", error);
+    }
+  };
+
+  useEffect(() => {
+    // Map tableData to tasks structure
+    const categoriesMap = new Map();
+    tableData.forEach((item) => {
+      if (!categoriesMap.has(item.category_name)) {
+        categoriesMap.set(item.category_name, {
+          category: item.category_name,
+          tasks: [],
+        });
+      }
+      categoriesMap.get(item.category_name).tasks.push({
+        id: item.todo_id,
+        name: item.todo_title,
+        description: item.todo_description,
+        dueDate: item.todo_due_date,
+        completed: item.todo_finished === 1,
+      });
+    });
+
+    const mappedTasks = Array.from(categoriesMap.values());
+    setTasks(mappedTasks);
+  }, [tableData]);
+
   const toggleComplete = (taskId) => {
-    const updatedTasks = tasks.map((taskCategory) => ({
-      ...taskCategory,
-      tasks: taskCategory.tasks.map((task) =>
+    const updatedTasks = tasks.map((category) => ({
+      ...category,
+      tasks: category.tasks.map((task) =>
         task.id === taskId ? { ...task, completed: !task.completed } : task
       ),
     }));
@@ -129,9 +76,9 @@ function TaskList() {
   };
 
   const editTask = (taskId, newName) => {
-    const updatedTasks = tasks.map((taskCategory) => ({
-      ...taskCategory,
-      tasks: taskCategory.tasks.map((task) =>
+    const updatedTasks = tasks.map((category) => ({
+      ...category,
+      tasks: category.tasks.map((task) =>
         task.id === taskId ? { ...task, name: newName } : task
       ),
     }));
@@ -153,13 +100,12 @@ function TaskList() {
       newTask.description &&
       newTask.dueDate
     ) {
-      const updatedTasks = tasks.map((taskCategory) => {
-        if (taskCategory.category === newTask.category) {
+      const updatedTasks = tasks.map((category) => {
+        if (category.category === newTask.category) {
           const newTaskItem = {
             id:
-              tasks.reduce(
-                (maxId, category) =>
-                  Math.max(maxId, ...category.tasks.map((task) => task.id)),
+              category.tasks.reduce(
+                (maxId, task) => Math.max(maxId, task.id),
                 0
               ) + 1,
             name: newTask.name,
@@ -168,11 +114,11 @@ function TaskList() {
             completed: false,
           };
           return {
-            ...taskCategory,
-            tasks: [...taskCategory.tasks, newTaskItem],
+            ...category,
+            tasks: [...category.tasks, newTaskItem],
           };
         }
-        return taskCategory;
+        return category;
       });
       setTasks(updatedTasks);
       setNewTask({ category: "", name: "", description: "", dueDate: "" });
@@ -180,9 +126,9 @@ function TaskList() {
     }
   };
 
-  const filteredTasks = tasks.map((taskCategory) => ({
-    ...taskCategory,
-    tasks: taskCategory.tasks.filter((task) => {
+  const filteredTasks = tasks.map((category) => ({
+    ...category,
+    tasks: category.tasks.filter((task) => {
       if (filter === "all") return true;
       if (filter === "completed") return task.completed;
       if (filter === "pending") return !task.completed;
@@ -276,11 +222,11 @@ function TaskList() {
 
       <h1>My Tasks</h1>
       <div className="task-list">
-        {filteredTasks.map((taskCategory, index) => (
+        {filteredTasks.map((category, index) => (
           <div key={index} className="task-category">
-            <h2>{taskCategory.category}</h2>
+            <h2>{category.category}</h2>
             <ul>
-              {taskCategory.tasks.map((task) => {
+              {category.tasks.map((task) => {
                 const isOverdue = new Date(task.dueDate) < new Date();
                 return (
                   <li
