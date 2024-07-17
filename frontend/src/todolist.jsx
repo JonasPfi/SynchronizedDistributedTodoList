@@ -80,6 +80,7 @@ function TaskList() {
   // SocketIO events
   useEffect(() => {
     loadTableData();
+    loadCategoryData();
     socket.on("refreshTableData", () => {
       console.log("Received broadcast: refreshTableData");
       loadTableData();
@@ -91,11 +92,19 @@ function TaskList() {
     try {
       const response = await axios.get(`${URL}/todotable`);
       setTodoData(response.data);
-      console.log(response.data);
     } catch (error) {
       console.error("Error loading data", error);
     }
   };
+  const loadCategoryData = async () => {
+    try {
+      const response = await axios.get(`${URL}/categorytable`);
+      setCategoryData(response.data);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error loading data", error);
+    }
+  }
 
   const [tasks, setTasks] = useState(initialTasks);
   const [filter, setFilter] = useState("all");

@@ -61,9 +61,24 @@ app.use(express.json());
 
 
 // ###################### DATABASE PART ######################
+//GET path for category table
+app.get('/categorytable', (req, res) => {
+    console.log("Request to load all entries from category");
+    connection.query("SELECT * FROM `category`;", function (error, results, fields) {
+        if (error) {
+            console.error(error);
+            res.status(500).json(error);
+        } else {
+            console.log('Success answer from DB');
+            res.status(200).json(results);
+        }
+    });
+});
+
+
 // GET path for todo table
 app.get('/todotable', (req, res) => {
-    console.log("Request to load all entries from table1");
+    console.log("Request to load all entries from todo");
     connection.query("SELECT * FROM `todo`;", function (error, results, fields) {
         if (error) {
             console.error(error);
@@ -99,7 +114,7 @@ app.post('/todotable', (req, res) => {
         var description = req.body.description;
         var category = req.body.category;
         var dueDate = req.body.dueDate;
-        console.log("Client send database insert request with 'title': " + title + " ; description: " + description); 
+        console.log("Client send todo insert request with 'title': " + title + " ; description: " + description); 
         const query = "INSERT INTO `todo` (`todo_id`, `todo_title`, `todo_description`, `todo_due_date`, `category_id`) VALUES (NULL, ?, ?, ?, ?)";
         connection.query(query, [title, description, dueDate, category], function (error, results, fields) {
             if (error) {
