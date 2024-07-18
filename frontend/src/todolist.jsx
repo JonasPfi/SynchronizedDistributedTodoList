@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { EditText, EditTextarea } from "react-edit-text";
 import "./css/todolist.css";
 import axios from "axios";
 import socketIO from "socket.io-client";
@@ -267,12 +268,24 @@ function TaskList() {
                           {/* Title and description */}
                           <div className="task-title-description">
                             {/* Title */}
-                            <div className="task-title">
-                              <span>{task.name}</span>
-                            </div>
+                            <React.Fragment>
+                              <EditText
+                                name={task.id + "-title"}
+                                defaultValue={task.name}
+                                inputClassName="task-title-edit"
+                                className="task-title"
+                              ></EditText>
+                            </React.Fragment>
                             {/* Description */}
                             <div className="task-description">
-                              {task.description}
+                              <React.Fragment>
+                                <EditTextarea
+                                  name={task.id + "-description"}
+                                  defaultValue={task.description}
+                                  inputClassName="task-description-edit"
+                                  className="task-description"
+                                ></EditTextarea>
+                              </React.Fragment>
                             </div>
                           </div>
                           {/* Due date */}

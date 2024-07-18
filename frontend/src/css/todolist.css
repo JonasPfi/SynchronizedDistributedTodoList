@@ -105,6 +105,7 @@ input[type="checkbox"] {
   gap: 20px;
   width: 100%;
   justify-content: space-between;
+  box-sizing: border-box;
 }
 
 .task-due-date {
@@ -115,6 +116,12 @@ input[type="checkbox"] {
 }
 
 .task-title {
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: #000000;
+  font-size: 22px;
+}
+.task-title-edit {
   border-radius: 4px;
   padding: 2px 6px;
   color: #000000;
@@ -137,6 +144,15 @@ input[type="checkbox"] {
   padding: 2px 6px;
   color: #404040;
   font-size: 18px;
+  overflow: hidden;
+  max-height: 80%;
+}
+.task-description-edit {
+  border-radius: 1px;
+  padding: 2px 6px;
+  color: #404040;
+  font-size: 18px;
+
 }
 
 button {
@@ -236,4 +252,3 @@ button:hover {
   stroke-dashoffset: -262.2723388671875;
   stroke: rgb(5, 219, 19);
 }
-
