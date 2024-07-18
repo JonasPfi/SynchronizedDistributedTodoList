@@ -21,9 +21,7 @@ body {
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow-y: auto; /* Enable vertical scrolling */
-  max-height: calc(
-    100vh - 40px
-  ); /* Adjusted to ensure the app fits within the viewport with some margin */
+  max-height: calc(100vh - 40px); /* Adjusted to ensure the app fits within the viewport with some margin */
 }
 
 h1 {
@@ -116,21 +114,27 @@ input[type="checkbox"] {
 }
 
 .task-title {
-  border-radius: 4px;
-  padding: 2px 6px;
   color: #000000;
   font-size: 22px;
 }
+
 .task-title-edit {
+  padding: 12px 20px;
+  box-sizing: border-box;
+  border: 2px solid #ccc;
   border-radius: 4px;
-  padding: 2px 6px;
-  color: #000000;
-  font-size: 22px;
+  background-color: #f8f8f8;
+  font-size: 18px;
+  resize: none;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
+
 .task {
   display: flex;
   flex-wrap: wrap;
 }
+
 .task-due-date.overdue {
   background-color: rgba(252, 28, 8, 0.221);
 }
@@ -139,20 +143,34 @@ input[type="checkbox"] {
   background-color: rgba(5, 219, 19, 0.221);
 }
 
+.task-text-duo-date {
+  display: flex;
+  flex-direction: column;
+}
+
 .task-description {
   border-radius: 4px;
   padding: 2px 6px;
   color: #404040;
   font-size: 18px;
-  overflow: hidden;
   max-height: 80%;
+  overflow: scroll;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
-.task-description-edit {
-  border-radius: 1px;
-  padding: 2px 6px;
-  color: #404040;
-  font-size: 18px;
 
+.task-description-edit {
+  width: 100%;
+  height: 150px;
+  padding: 12px 20px;
+  box-sizing: border-box;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  font-size: 18px;
+  resize: none;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 button {
@@ -251,4 +269,26 @@ button:hover {
   stroke-dasharray: 70.5096664428711 9999999;
   stroke-dashoffset: -262.2723388671875;
   stroke: rgb(5, 219, 19);
+}
+
+@media (max-width: 650px) {
+  body {
+    overflow-y: auto; /* Enable vertical scrolling on smaller screens */
+  }
+  ul {
+    padding: 0%;
+  }
+  .task-details {
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+  .task-text-duo-date {
+    margin-top: 0px;
+  }
+
+  .task-text-duo-date {
+    display: flex;
+    flex-direction: column;
+  }
 }

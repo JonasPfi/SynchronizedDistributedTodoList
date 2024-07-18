@@ -282,6 +282,7 @@ function TaskList() {
                                 <EditTextarea
                                   name={task.id + "-description"}
                                   defaultValue={task.description}
+                                  rows={3}
                                   inputClassName="task-description-edit"
                                   className="task-description"
                                 ></EditTextarea>
@@ -289,7 +290,7 @@ function TaskList() {
                             </div>
                           </div>
                           {/* Due date */}
-                          <div>
+                          <div className="task-text-duo-date">
                             <label className="task-title">Due:</label>
                             <div
                               className={`task-due-date ${
