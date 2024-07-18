@@ -242,12 +242,14 @@ function TaskList() {
                     const isOverdue = new Date(task.dueDate) < new Date();
                     return (
                       <li
-                        key={task.id}
+                        key={task.id} //key to find the right todo with the task id from whole event
                         className={`task-item ${
                           task.completed ? "completed" : ""
                         }`}
                       >
+                        {/* Todo item: checkmark, title, description and due date */}
                         <div className="task-details">
+                          {/* Checkmark */}
                           <label className="task-left ckeck-container">
                             <input
                               type="checkbox"
@@ -262,14 +264,18 @@ function TaskList() {
                               ></path>
                             </svg>
                           </label>
+                          {/* Title and description */}
                           <div className="task-title-description">
+                            {/* Title */}
                             <div className="task-title">
                               <span>{task.name}</span>
                             </div>
+                            {/* Description */}
                             <div className="task-description">
                               {task.description}
                             </div>
                           </div>
+                          {/* Due date */}
                           <div>
                             <label className="task-title">Due:</label>
                             <div
