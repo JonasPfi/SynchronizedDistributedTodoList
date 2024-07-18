@@ -1,13 +1,14 @@
 body {
   margin: 0;
-  font-family: 'Arial', sans-serif;
-  background-color: #f0f4f8;
+  font-family: "Arial", sans-serif;
+  background-color: #003554;
   color: #333;
   display: flex;
   justify-content: center;
   align-items: flex-start; /* Changed to flex-start to allow scrolling */
   height: 100vh;
   overflow-x: hidden; /* Prevent horizontal scrolling */
+  overflow-y: hidden;
 }
 
 .App {
@@ -20,7 +21,9 @@ body {
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow-y: auto; /* Enable vertical scrolling */
-  max-height: calc(100vh - 40px); /* Adjusted to ensure the app fits within the viewport with some margin */
+  max-height: calc(
+    100vh - 40px
+  ); /* Adjusted to ensure the app fits within the viewport with some margin */
 }
 
 h1 {
@@ -41,7 +44,7 @@ h1 {
   background-color: #ffffff;
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
 }
 
 .task-category h2 {
@@ -55,12 +58,18 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f9f9f9;
+  background-color: #f5f5f5;
   border-radius: 8px;
   padding: 15px 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
   margin-bottom: 10px;
   transition: background-color 0.3s ease;
+}
+
+.task-item.completed {
+  text-decoration: line-through;
+  color: grey;
 }
 
 .task-item:hover {
@@ -73,7 +82,7 @@ h1 {
   gap: 10px;
 }
 
-input[type='checkbox'] {
+input[type="checkbox"] {
   width: 20px;
   height: 20px;
   cursor: pointer;
@@ -93,31 +102,45 @@ input[type='checkbox'] {
 .task-details {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 20px;
+  width: 100%;
+  justify-content: space-between;
 }
 
 .task-due-date {
-  font-size: 14px;
+  font-size: 20px;
+  margin: 10px;
+  padding: 7px;
+  border-radius: 8px;
 }
 
+.task-title {
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: #000000;
+  font-size: 22px;
+}
+.task {
+  display: flex;
+  flex-wrap: wrap;
+}
 .task-due-date.overdue {
-  color: red;
+  background-color: rgba(252, 28, 8, 0.221);
 }
 
 .task-due-date.ontime {
-  color: green;
+  background-color: rgba(5, 219, 19, 0.221);
 }
 
 .task-description {
-  background-color: #e0e0e0;
   border-radius: 4px;
   padding: 2px 6px;
-  color: #666;
-  font-size: 14px;
+  color: #404040;
+  font-size: 18px;
 }
 
 button {
-  background-color: #6200ea;
+  background-color: #003554;
   border: none;
   border-radius: 4px;
   color: #fff;
@@ -128,11 +151,11 @@ button {
 }
 
 button:hover {
-  background-color: #3700b3;
+  background-color: #00a6fb;
 }
 
-.add-task, .add-category {
-  background-color: #6200ea;
+.add-task,
+.add-category {
   color: white;
   padding: 10px 20px;
   border: none;
@@ -140,10 +163,6 @@ button:hover {
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-}
-
-.add-task:hover, .add-category:hover {
-  background-color: #3700b3;
 }
 
 .task-filter {
@@ -188,3 +207,33 @@ button:hover {
   background: rgba(0, 0, 0, 0.5);
   z-index: 999;
 }
+
+.ckeck-container {
+  cursor: pointer;
+}
+
+.ckeck-container input {
+  display: none;
+}
+
+.ckeck-container svg {
+  overflow: visible;
+}
+
+.path {
+  fill: none;
+  stroke: rgb(12, 6, 45);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke-dasharray 0.5s ease, stroke-dashoffset 0.5s ease;
+  stroke-dasharray: 241 9999999;
+  stroke-dashoffset: 0;
+}
+
+.ckeck-container input:checked ~ svg .path {
+  stroke-dasharray: 70.5096664428711 9999999;
+  stroke-dashoffset: -262.2723388671875;
+  stroke: rgb(5, 219, 19);
+}
+

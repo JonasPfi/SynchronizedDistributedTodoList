@@ -1,10 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './todolist.jsx';
-import './todolist.css'
+import Todo from './todolist.jsx';
+import './css/todolist.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <Todo />
   </React.StrictMode>,
 )

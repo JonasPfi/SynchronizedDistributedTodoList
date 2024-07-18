@@ -8,7 +8,7 @@ const socketIO = require('socket.io');
 const mysql = require('mysql');
 // Database connection info - used from environment variables
 var dbInfo = {
-    connectionLimit : 10,
+    connectionLimit: 10,
     host: process.env.MYSQL_HOSTNAME,
     user: process.env.MYSQL_USER,
     password: process.env.MYSQL_PASSWORD,
@@ -61,80 +61,88 @@ app.use(express.json());
 
 
 // ###################### DATABASE PART ######################
-// GET path for database
+//GET path for table data
 app.get('/database', (req, res) => {
-    console.log("Request to load all entries from table1");
-    // Prepare the get query
-    connection.query("SELECT * FROM `todo`;", function (error, results, fields) {
+    console.log("Request to load all entries from category");
+    connection.query("SELECT * FROM `category` JOIN `todo` ON todo.category_id=category.category_id;", function (error, results, fields) {
         if (error) {
-            // we got an errror - inform the client
-            console.error(error); // <- log error in server
-            res.status(500).json(error); // <- send to client
+            console.error(error);
+            res.status(500).json(error);
         } else {
-            // we got no error - send it to the client
-            console.log('Success answer from DB'); // <- log results in console -> shorted to prevent console dumping
-            // INFO: Here could be some code to modify the result
-            res.status(200).json(results); // <- send it to client
+            console.log('Success answer from DB');
+            res.status(200).json(results);
         }
     });
 });
 
-// DELETE path for database
-app.delete('/database/:id', (req, res) => {
-    // This path will delete an entry. For example the path would look like DELETE '/database/5' -> This will delete number 5
-    let id = req.params.id; // <- load the ID from the path
-    console.log("Request to delete Item: " + id); // <- log for debugging
+//GET path for category table
+app.get('/categorytable', (req, res) => {
+    console.log("Request to load all entries from category");
+    connection.query("SELECT * FROM `category`;", function (error, results, fields) {
+        if (error) {
+            console.error(error);
+            res.status(500).json(error);
+        } else {
+            console.log('Success answer from DB');
+            res.status(200).json(results);
+        }
+    });
+});
 
-    // Actual executing the query to delete it from the server
-    // Please keep in mind to secure this for SQL injection!
+
+// GET path for todo table
+app.get('/todotable', (req, res) => {
+    console.log("Request to load all entries from todo");
+    connection.query("SELECT * FROM `todo`;", function (error, results, fields) {
+        if (error) {
+            console.error(error);
+            res.status(500).json(error);
+        } else {
+            console.log('Success answer from DB');
+            res.status(200).json(results);
+        }
+    });
+});
+
+// DELETE path for todo table
+app.delete('/todotable/:id', (req, res) => {
+    let id = req.params.id;
+    console.log("Request to delete Item: " + id);
+
     connection.query("DELETE FROM `todo` WHERE `todo`.`todo_id` = ?", [id], function (error, results, fields) {
         if (error) {
-            // we got an errror - inform the client
-            console.error(error); // <- log error in server
-            res.status(500).json(error); // <- send to client
+            console.error(error);
+            res.status(500).json(error);
         } else {
-            // Everything is fine with the query
-            console.log('Success answer: ', results); // <- log results in console
-            // INFO: Here can be some checks of modification of the result
-            res.status(200).json(results); // <- send it to client
+            console.log('Success answer: ', results);
+            res.status(200).json(results);
         }
     });
     io.emit('refreshTableData');
 });
 
-// POST path for database
-app.post('/database', (req, res) => {
-    // This will add a new row. So we're getting a JSON from the webbrowser which needs to be checked for correctness and later
-    // it will be added to the database with a query.
+// POST path for todo table
+app.post('/todotable', (req, res) => {
     if (typeof req.body !== "undefined" && typeof req.body.title !== "undefined" && typeof req.body.description !== "undefined") {
-        // The content looks good, so move on
-        // Get the content to local variables:
-        var title = req.body.title;
-        var description = req.body.description;
-        var category = req.body.category;
-        var dueDate = req.body.dueDate;
-        console.log("Client send database insert request with 'title': " + title + " ; description: " + description); // <- log to server
-        // Actual executing the query. Please keep in mind that this is for learning and education.
-        // In real production environment, this has to be secure for SQL injection!
+        let title = req.body.title;
+        let description = req.body.description;
+        let category = req.body.category;
+        let dueDate = req.body.dueDate;
+        console.log("Client send todo insert request with 'title': " + title + " ; description: " + description);
         const query = "INSERT INTO `todo` (`todo_id`, `todo_title`, `todo_description`, `todo_due_date`, `category_id`) VALUES (NULL, ?, ?, ?, ?)";
         connection.query(query, [title, description, dueDate, category], function (error, results, fields) {
             if (error) {
-                // we got an error - inform the client
-                console.error(error); // <- log error in server
-                res.status(500).json(error); // <- send to client
+                console.error(error);
+                res.status(500).json(error);
             } else {
-                // Everything is fine with the query
-                console.log('Success answer: ', results); // <- log results in console
-                // INFO: Here can be some checks of modification of the result
-                res.status(200).json(results); // <- send it to client
+                console.log('Success answer: ', results);
+                res.status(200).json(results);
             }
         });
-        
+
     }
     else {
-        // There is nobody with a title nor description
         console.error("Client send no correct data!")
-        // Set HTTP Status -> 400 is client error -> and send message
         res.status(400).json({ message: 'This function requries a body with "title" and "description' });
     }
     io.emit('refreshTableData');

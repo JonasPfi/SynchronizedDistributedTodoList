@@ -37,8 +37,8 @@ CREATE TABLE `category` (
 --
 
 INSERT INTO `category` (`category_id`, `category_name`) VALUES
-(1, 'kitchen'),
-(2, 'garden');
+(1, 'Kitchen'),
+(2, 'Garden');
 
 -- --------------------------------------------------------
 
