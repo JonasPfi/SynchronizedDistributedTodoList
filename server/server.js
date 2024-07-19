@@ -2,7 +2,6 @@
 
 const express = require('express');
 const cors = require('cors');
-const socketIO = require('socket.io');
 
 // Database
 const mysql = require('mysql');
@@ -46,7 +45,7 @@ connection.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
 
 // Constants
 const PORT = process.env.PORT || 8080;
-const HOST = '0.0.0.0';
+const HOST = process.env.HOST || '0.0.0.0';
 const FRONTEND_URL = process.env.FRONTEND_URL || `http://localhost:3000/`;
 
 // App
@@ -118,7 +117,6 @@ app.delete('/todotable/:id', (req, res) => {
             res.status(200).json(results);
         }
     });
-    io.emit('refreshTableData');
 });
 
 // POST path for todo table
@@ -145,7 +143,6 @@ app.post('/todotable', (req, res) => {
         console.error("Client send no correct data!")
         res.status(400).json({ message: 'This function requries a body with "title" and "description' });
     }
-    io.emit('refreshTableData');
 });
 // ###################### DATABASE PART END ######################
 
@@ -157,21 +154,6 @@ app.use('/static', express.static('public'))
 // Start the actual server
 const expressServer = app.listen(PORT, HOST);
 console.log(`Running on http://${HOST}:${PORT}`);
-
-// Define SocketIO
-const io = socketIO(expressServer, {
-    cors: {
-        origin: '*',
-    },
-});
-
-io.on("connection", async (socket) => {
-    console.log("A user connected", socket.id);
-
-    socket.on("disconnect", () => {
-        console.log("A user disconnected");
-    });
-});
 
 // Start database connection
 const sleep = (milliseconds) => {

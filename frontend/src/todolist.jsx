@@ -7,7 +7,8 @@ import socketIO from "socket.io-client";
 const URL =
   process.env.NODE_ENV === "production" ? undefined : "http://localhost:8080";
 
-const socket = socketIO.connect(URL);
+const SOCKET_URL = "http://localhost:9090";
+const socket = socketIO.connect(SOCKET_URL);
 
 function TaskList() {
   const [tableData, setTableData] = useState([]);

@@ -22,6 +22,22 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_HOSTNAME: ${MYSQL_HOSTNAME}
+      PORT: ${SERVER_PORT}
+      HOST: ${SERVER_HOST}
+      FRONTEND_URL: ${FRONTEND_URL}
+    links:
+      - todolistdb
+    depends_on:
+      - todolistdb
+
+  socket-server:
+    build: socket-server
+    ports:
+      - "9090:9090"
+    restart: always
+    environment:
+      PORT: ${SOCKET_IO_PORT}
+      HOST: ${SCOKET_IO_HOST}
       FRONTEND_URL: ${FRONTEND_URL}
     links:
       - todolistdb
@@ -50,3 +66,6 @@ services:
       context: ./frontend
     ports:
       - "3000:3000"
+    environment:
+      SERVER_URL: ${SERVER_URL}
+      SOCKET_IO_URL: ${SOCKET_URL}
