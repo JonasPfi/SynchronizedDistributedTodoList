@@ -229,6 +229,7 @@ function TaskList() {
               placeholder="New Category Name"
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
+              maxLength="30"
             />
             <button onClick={addCategory}>Add Category</button>
             <button onClick={() => setShowCategoryModal(false)}>Cancel</button>
@@ -262,6 +263,7 @@ function TaskList() {
               placeholder="Task Name"
               value={newTask.name}
               onChange={(e) => setNewTask({ ...newTask, name: e.target.value })}
+              maxLength="30"
             />
             <textarea
               placeholder="Description"
@@ -269,7 +271,7 @@ function TaskList() {
               onChange={(e) =>
                 setNewTask({ ...newTask, description: e.target.value })
               }
-              maxLength="45"
+              maxLength="200"
             />
             <input
               type="date"
