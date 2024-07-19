@@ -95,44 +95,61 @@ function TaskList() {
     setTasks(updatedTasks);
   };
 
-  const addCategory = () => {
+  const addCategory = async () => {
     if (newCategory) {
-      setTasks([...tasks, { category: newCategory, tasks: [] }]);
-      setNewCategory("");
-      setShowCategoryModal(false);
+      try {
+        const response = await axios.post(`${URL}/addCategory`, { category: newCategory });
+        if (response.status === 200) {
+          setTasks([...tasks, { category: newCategory, tasks: [] }]);
+          setNewCategory("");
+          setShowCategoryModal(false);
+          socket.emit('refreshTableData');
+        }
+      } catch (error) {
+        console.error("Error adding category", error);
+      }
     }
   };
 
-  const addTask = () => {
+  const addTask = async () => {
     if (
       newTask.category &&
       newTask.name &&
       newTask.description &&
       newTask.dueDate
     ) {
-      const updatedTasks = tasks.map((category) => {
-        if (category.category === newTask.category) {
-          const newTaskItem = {
-            id:
-              category.tasks.reduce(
-                (maxId, task) => Math.max(maxId, task.id),
-                0
-              ) + 1,
-            name: newTask.name,
-            description: newTask.description,
-            dueDate: newTask.dueDate,
-            completed: false,
-          };
-          return {
-            ...category,
-            tasks: [...category.tasks, newTaskItem],
-          };
+      try {
+        const response = await axios.post(`${URL}/addTask`, {
+          title: newTask.name,
+          description: newTask.description,
+          category: newTask.category,
+          dueDate: newTask.dueDate
+        });
+        if (response.status === 200) {
+          const updatedTasks = tasks.map((category) => {
+            if (category.category === newTask.category) {
+              const newTaskItem = {
+                id: response.data.insertId,
+                name: newTask.name,
+                description: newTask.description,
+                dueDate: newTask.dueDate,
+                completed: false,
+              };
+              return {
+                ...category,
+                tasks: [...category.tasks, newTaskItem],
+              };
+            }
+            return category;
+          });
+          setTasks(updatedTasks);
+          setNewTask({ category: "", name: "", description: "", dueDate: "" });
+          setShowTaskModal(false);
+          socket.emit('refreshTableData');
         }
-        return category;
-      });
-      setTasks(updatedTasks);
-      setNewTask({ category: "", name: "", description: "", dueDate: "" });
-      setShowTaskModal(false);
+      } catch (error) {
+        console.error("Error adding task", error);
+      }
     }
   };
 
@@ -256,7 +273,7 @@ function TaskList() {
                             />
                             <svg viewBox="0 0 64 64" height="2em" width="2em">
                               <path
-                                d="M 0 16 V 56 A 8 8 90 0 0 8 64 H 56 A 8 8 90 0 0 64 56 V 8 A 8 8 90 0 0 56 0 H 8 A 8 8 90 0 0 0 8 V 16 L 32 48 L 64 16 V 8 A 8 8 90 0 0 56 0 H 8 A 8 8 90 0 0 0 8 V 56 A 8 8 90 0 0 8 64 H 56 A 8 8 90 0 0 64 56 V 16"
+                                d="M 0 16 V 56 A 8 8 90 0 0 0 8 64 H 56 A 8 8 90 0 0 0 64 56 V 8 A 8 8 90 0 0 0 56 0 H 8 A 8 8 90 0 0 0 0 8 V 16 L 32 48 L 64 16 V 8 A 8 8 90 0 0 0 56 0 H 8 A 8 8 90 0 0 0 0 8 V 56 A 8 8 90 0 0 0 8 64 H 56 A 8 8 90 0 0 0 64 56 V 16"
                                 pathLength="575.0541381835938"
                                 class="path"
                               ></path>

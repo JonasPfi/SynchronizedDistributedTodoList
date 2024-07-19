@@ -16,19 +16,7 @@ var dbInfo = {
 };
 
 var connection = mysql.createPool(dbInfo);
-console.log("Conecting to database...");
-// connection.connect(); <- connect not required in connection pool
-
-// SQL Database init.
-// In this current demo, this is done by the "database.sql" file which is stored in the "db"-container (./db/).
-// Alternative you could use the mariadb basic sample and do the following steps here:
-/*
-connection.query("CREATE TABLE IF NOT EXISTS table1 (task_id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255) NOT NULL, description TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)  ENGINE=INNODB;", function (error, results, fields) {
-    if (error) throw error;
-    console.log('Answer: ', results);
-});
-*/
-// See readme.md for more information about that.
+console.log("Connecting to database...");
 
 // Check the connection
 connection.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
@@ -89,7 +77,6 @@ app.get('/categorytable', (req, res) => {
     });
 });
 
-
 // GET path for todo table
 app.get('/todotable', (req, res) => {
     console.log("Request to load all entries from todo");
@@ -121,15 +108,15 @@ app.delete('/todotable/:id', (req, res) => {
     io.emit('refreshTableData');
 });
 
-// POST path for todo table
-app.post('/todotable', (req, res) => {
-    if (typeof req.body !== "undefined" && typeof req.body.title !== "undefined" && typeof req.body.description !== "undefined") {
+// POST path for adding a new task
+app.post('/addTask', (req, res) => {
+    if (typeof req.body !== "undefined" && typeof req.body.title !== "undefined" && typeof req.body.description !== "undefined" && typeof req.body.category !== "undefined" && typeof req.body.dueDate !== "undefined") {
         let title = req.body.title;
         let description = req.body.description;
         let category = req.body.category;
         let dueDate = req.body.dueDate;
-        console.log("Client send todo insert request with 'title': " + title + " ; description: " + description);
-        const query = "INSERT INTO `todo` (`todo_id`, `todo_title`, `todo_description`, `todo_due_date`, `category_id`) VALUES (NULL, ?, ?, ?, ?)";
+        console.log("Client send task insert request with 'title': " + title + " ; description: " + description + " ; category: " + category + " ; dueDate: " + dueDate);
+        const query = "INSERT INTO `todo` (`todo_title`, `todo_description`, `todo_due_date`, `category_id`) VALUES (?, ?, ?, (SELECT category_id FROM category WHERE category_name = ? LIMIT 1))";
         connection.query(query, [title, description, dueDate, category], function (error, results, fields) {
             if (error) {
                 console.error(error);
@@ -139,11 +126,31 @@ app.post('/todotable', (req, res) => {
                 res.status(200).json(results);
             }
         });
-
-    }
-    else {
+    } else {
         console.error("Client send no correct data!")
-        res.status(400).json({ message: 'This function requries a body with "title" and "description' });
+        res.status(400).json({ message: 'This function requires a body with "title", "description", "category", and "dueDate"' });
+    }
+    io.emit('refreshTableData');
+});
+
+// POST path for adding a new category
+app.post('/addCategory', (req, res) => {
+    if (typeof req.body !== "undefined" && typeof req.body.category !== "undefined") {
+        let category = req.body.category;
+        console.log("Client send category insert request with 'category': " + category);
+        const query = "INSERT INTO `category` (`category_name`) VALUES (?)";
+        connection.query(query, [category], function (error, results, fields) {
+            if (error) {
+                console.error(error);
+                res.status(500).json(error);
+            } else {
+                console.log('Success answer: ', results);
+                res.status(200).json(results);
+            }
+        });
+    } else {
+        console.error("Client send no correct data!")
+        res.status(400).json({ message: 'This function requires a body with "category"' });
     }
     io.emit('refreshTableData');
 });
@@ -172,17 +179,3 @@ io.on("connection", async (socket) => {
         console.log("A user disconnected");
     });
 });
-
-// Start database connection
-const sleep = (milliseconds) => {
-    return new Promise(resolve => setTimeout(resolve, milliseconds))
-}
-
-
-
-
-
-
-
-
-
