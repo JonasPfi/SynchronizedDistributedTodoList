@@ -25,9 +25,11 @@ function TaskList() {
 
   useEffect(() => {
     loadTableData();
+    loadCategories();
     socket.on("refreshTableData", () => {
       console.log("Received broadcast: refreshTableData");
       loadTableData();
+      loadCategories(); // Load categories again when data is refreshed
     });
   }, []);
 
@@ -37,6 +39,15 @@ function TaskList() {
       setTableData(response.data);
     } catch (error) {
       console.error("Error loading data", error);
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const response = await axios.get(`${URL}/categorytable`);
+      setCategories(response.data.map(cat => cat.category_name));
+    } catch (error) {
+      console.error("Error loading categories", error);
     }
   };
 
@@ -60,7 +71,6 @@ function TaskList() {
 
     const mappedTasks = Array.from(categoriesMap.values());
     setTasks(mappedTasks);
-    setCategories([...categoriesMap.keys()]);
   }, [tableData]);
 
   const toggleComplete = (taskId) => {
