@@ -44,7 +44,7 @@ function TaskList() {
 
   const loadCategories = async () => {
     try {
-      const response = await axios.get(`${URL}/categorytable`);
+      const response = await axios.get(`${URL}/category`);
       setCategories(response.data.map((cat) => cat.category_name));
     } catch (error) {
       console.error("Error loading categories", error);
@@ -106,7 +106,7 @@ function TaskList() {
   const addCategory = async () => {
     if (newCategory) {
       try {
-        const response = await axios.post(`${URL}/addCategory`, { category: newCategory });
+        const response = await axios.post(`${URL}/category`, { category: newCategory });
         if (response.status === 200) {
           setTasks([...tasks, { category: newCategory, tasks: [] }]);
           setCategories([...categories, newCategory]);
@@ -136,18 +136,18 @@ function TaskList() {
       newTask.description &&
       newTask.dueDate
     ) {
-      if (newTask.name.length > 15) {
-        setTaskError("Task name exceeds 15 characters.");
+      if (newTask.name.length > 30) {
+        setTaskError("Task name exceeds 30 characters.");
         return;
       }
 
-      if (newTask.description.length > 45) {
-        setTaskError("Task description exceeds 45 characters.");
+      if (newTask.description.length > 200) {
+        setTaskError("Task description exceeds 200 characters.");
         return;
       }
 
       try {
-        const response = await axios.post(`${URL}/addTask`, {
+        const response = await axios.post(`${URL}/task`, {
           title: newTask.name,
           description: newTask.description,
           category: newTask.category,
