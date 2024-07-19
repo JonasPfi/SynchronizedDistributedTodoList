@@ -64,7 +64,7 @@ app.get('/database', (req, res) => {
 });
 
 //GET path for category table
-app.get('/categorytable', (req, res) => {
+app.get('/category', (req, res) => {
     console.log("Request to load all entries from category");
     connection.query("SELECT * FROM `category`;", function (error, results, fields) {
         if (error) {
@@ -109,7 +109,7 @@ app.delete('/todotable/:id', (req, res) => {
 });
 
 // POST path for adding a new task
-app.post('/addTask', (req, res) => {
+app.post('/task', (req, res) => {
     if (typeof req.body !== "undefined" && typeof req.body.title !== "undefined" && typeof req.body.description !== "undefined" && typeof req.body.category !== "undefined" && typeof req.body.dueDate !== "undefined") {
         let title = req.body.title;
         let description = req.body.description;
@@ -134,7 +134,7 @@ app.post('/addTask', (req, res) => {
 });
 
 // POST path for adding a new category
-app.post('/addCategory', (req, res) => {
+app.post('/category', (req, res) => {
     if (typeof req.body !== "undefined" && typeof req.body.category !== "undefined") {
         let category = req.body.category;
         console.log("Client send category insert request with 'category': " + category);
