@@ -1,16 +1,6 @@
 version: '3.3'
 
 services:
-  nginx:
-    image: nginx:latest
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - frontend
-      - server
-    restart: always
 
   server:
     build: server
@@ -69,3 +59,15 @@ services:
     environment:
       SERVER_URL: ${SERVER_URL}
       SOCKET_IO_URL: ${SOCKET_URL}
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - frontend
+      - server
+      - socket-server
+    restart: always

@@ -4,10 +4,9 @@ import "./css/todolist.css";
 import axios from "axios";
 import socketIO from "socket.io-client";
 
-const URL =
-  process.env.NODE_ENV === "production" ? undefined : "http://localhost:8080";
+const URL = process.env.NODE_ENV === "production" ? undefined : "http://localhost/";
 
-const SOCKET_URL = "http://localhost:9090";
+const SOCKET_URL = "http://localhost/socket";
 const socket = socketIO.connect(SOCKET_URL);
 
 function TaskList() {
@@ -36,7 +35,7 @@ function TaskList() {
   // Loads table data with backend call
   const loadTableData = async () => {
     try {
-      const response = await axios.get(`${URL}/database`);
+      const response = await axios.get(`${URL}database`);
       setTableData(response.data);
     } catch (error) {
       console.error("Error loading data", error);
