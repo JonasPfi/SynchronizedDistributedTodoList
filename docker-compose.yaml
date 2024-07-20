@@ -1,5 +1,7 @@
 version: '3.3'
+
 services:
+
   server:
     build: server
     ports:
@@ -10,14 +12,29 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_HOSTNAME: ${MYSQL_HOSTNAME}
+      PORT: ${SERVER_PORT}
+      HOST: ${SERVER_HOST}
       FRONTEND_URL: ${FRONTEND_URL}
     links:
       - todolistdb
     depends_on:
       - todolistdb
+
+  socket-server:
+    build: socket-server
+    ports:
+      - "9090:9090"
+    restart: always
+    environment:
+      PORT: ${SOCKET_IO_PORT}
+      HOST: ${SCOKET_IO_HOST}
+      FRONTEND_URL: ${FRONTEND_URL}
+    links:
+      - todolistdb
+    depends_on:
+      - todolistdb
+
   todolistdb:
-    # Use of a modified datbase in 'db'-folder.
-    # See README.md for more information.
     build: db
     restart: always
     environment:
@@ -25,6 +42,7 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_RANDOM_ROOT_PASSWORD: '1'
+
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     restart: always
@@ -32,8 +50,24 @@ services:
       - 8085:80
     environment:
       PMA_HOST: todolistdb
+
   frontend:
     build:
       context: ./frontend
+      args:
+        - NGINX_URL=${NGINX_URL}
+        - FRONTEND_PORT=${FRONTEND_PORT}
     ports:
-      - "3000:3000" 
+      - "3000:3000"
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - frontend
+      - server
+      - socket-server
+    restart: always

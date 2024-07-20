@@ -2,7 +2,6 @@
 
 const express = require('express');
 const cors = require('cors');
-const socketIO = require('socket.io');
 
 // Database
 const mysql = require('mysql');
@@ -34,7 +33,7 @@ connection.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
 
 // Constants
 const PORT = process.env.PORT || 8080;
-const HOST = '0.0.0.0';
+const HOST = process.env.HOST || '0.0.0.0';
 const FRONTEND_URL = process.env.FRONTEND_URL || `http://localhost:3000/`;
 
 // App
@@ -105,11 +104,10 @@ app.delete('/todotable/:id', (req, res) => {
             res.status(200).json(results);
         }
     });
-    io.emit('refreshTableData');
 });
 
-// POST path for adding a new task
-app.post('/task', (req, res) => {
+// POST path for adding a new todo
+app.post('/todo', (req, res) => {
     if (typeof req.body !== "undefined" && typeof req.body.title !== "undefined" && typeof req.body.description !== "undefined" && typeof req.body.category !== "undefined" && typeof req.body.dueDate !== "undefined") {
         let title = req.body.title;
         let description = req.body.description;
@@ -130,7 +128,6 @@ app.post('/task', (req, res) => {
         console.error("Client send no correct data!")
         res.status(400).json({ message: 'This function requires a body with "title", "description", "category", and "dueDate"' });
     }
-    io.emit('refreshTableData');
 });
 
 // POST path for adding a new category
@@ -152,7 +149,6 @@ app.post('/category', (req, res) => {
         console.error("Client send no correct data!")
         res.status(400).json({ message: 'This function requires a body with "category"' });
     }
-    io.emit('refreshTableData');
 });
 // ###################### DATABASE PART END ######################
 
@@ -165,17 +161,16 @@ app.use('/static', express.static('public'))
 const expressServer = app.listen(PORT, HOST);
 console.log(`Running on http://${HOST}:${PORT}`);
 
-// Define SocketIO
-const io = socketIO(expressServer, {
-    cors: {
-        origin: '*',
-    },
-});
+// Start database connection
+const sleep = (milliseconds) => {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
 
-io.on("connection", async (socket) => {
-    console.log("A user connected", socket.id);
 
-    socket.on("disconnect", () => {
-        console.log("A user disconnected");
-    });
-});
+
+
+
+
+
+
+

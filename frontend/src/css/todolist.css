@@ -126,6 +126,7 @@ input[type="checkbox"] {
   gap: 20px;
   width: 100%;
   justify-content: space-between;
+  box-sizing: border-box;
 }
 
 .task-due-date {
@@ -136,10 +137,20 @@ input[type="checkbox"] {
 }
 
 .task-title {
-  border-radius: 4px;
-  padding: 2px 6px;
   color: #000000;
   font-size: 22px;
+}
+
+.task-title-edit {
+  padding: 12px 20px;
+  box-sizing: border-box;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  font-size: 18px;
+  resize: none;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 .task {
@@ -155,11 +166,34 @@ input[type="checkbox"] {
   background-color: rgba(5, 219, 19, 0.221);
 }
 
+.task-text-duo-date {
+  display: flex;
+  flex-direction: column;
+}
+
 .task-description {
   border-radius: 4px;
   padding: 2px 6px;
   color: #404040;
   font-size: 18px;
+  max-height: 80%;
+  overflow: scroll;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.task-description-edit {
+  width: 100%;
+  height: 150px;
+  padding: 12px 20px;
+  box-sizing: border-box;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  font-size: 18px;
+  resize: none;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 button {
@@ -270,6 +304,27 @@ input.error {
   font-size: 14px;
 }
 
+@media (max-width: 650px) {
+  body {
+    overflow-y: auto; /* Enable vertical scrolling on smaller screens */
+  }
+  ul {
+    padding: 0%;
+  }
+  .task-details {
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+  .task-text-duo-date {
+    margin-top: 0px;
+  }
+
+  .task-text-duo-date {
+    display: flex;
+    flex-direction: column;
+  }
+}
 .modal input[type="text"],
 .modal textarea,
 .modal input[type="date"],

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { EditText, EditTextarea } from "react-edit-text";
 import "./css/todolist.css";
 import axios from "axios";
 import socketIO from "socket.io-client";
 
-const URL = process.env.NODE_ENV === "production" ? undefined : "http://localhost:8080";
-
-const socket = socketIO.connect(URL);
+const URL = process.env.NGINX_URL ? undefined : "http://localhost/";
+let socket = socketIO(URL, { transports: ["websocket"] }).connect();
 
 function TaskList() {
   const [tableData, setTableData] = useState([]);
@@ -35,7 +35,7 @@ function TaskList() {
 
   const loadTableData = async () => {
     try {
-      const response = await axios.get(`${URL}/database`);
+      const response = await axios.get(`${URL}database`);
       setTableData(response.data);
     } catch (error) {
       console.error("Error loading data", error);
@@ -44,7 +44,7 @@ function TaskList() {
 
   const loadCategories = async () => {
     try {
-      const response = await axios.get(`${URL}/category`);
+      const response = await axios.get(`${URL}category`);
       setCategories(response.data.map((cat) => cat.category_name));
     } catch (error) {
       console.error("Error loading categories", error);
@@ -106,7 +106,7 @@ function TaskList() {
   const addCategory = async () => {
     if (newCategory) {
       try {
-        const response = await axios.post(`${URL}/category`, { category: newCategory });
+        const response = await axios.post(`${URL}category`, { category: newCategory });
         if (response.status === 200) {
           setTasks([...tasks, { category: newCategory, tasks: [] }]);
           setCategories([...categories, newCategory]);
@@ -147,7 +147,7 @@ function TaskList() {
       }
 
       try {
-        const response = await axios.post(`${URL}/task`, {
+        const response = await axios.post(`${URL}todo`, {
           title: newTask.name,
           description: newTask.description,
           category: newTask.category,
@@ -305,6 +305,7 @@ function TaskList() {
                           task.completed ? "completed" : ""
                         }`}
                       >
+                        {/* Todo item: checkmark, title, description and due date */}
                         <div className="task-details">
                           <label className="task-left check-container">
                             <input
@@ -320,15 +321,32 @@ function TaskList() {
                               ></path>
                             </svg>
                           </label>
+                          {/* Title and description */}
                           <div className="task-title-description">
-                            <div className="task-title">
-                              <span>{task.name}</span>
-                            </div>
+                            {/* Title */}
+                            <React.Fragment>
+                              <EditText
+                                name={task.id + "-title"}
+                                defaultValue={task.name}
+                                inputClassName="task-title-edit"
+                                className="task-title"
+                              ></EditText>
+                            </React.Fragment>
+                            {/* Description */}
                             <div className="task-description">
-                              {task.description}
+                              <React.Fragment>
+                                <EditTextarea
+                                  name={task.id + "-description"}
+                                  defaultValue={task.description}
+                                  rows={3}
+                                  inputClassName="task-description-edit"
+                                  className="task-description"
+                                ></EditTextarea>
+                              </React.Fragment>
                             </div>
                           </div>
-                          <div>
+                          {/* Due date */}
+                          <div className="task-text-duo-date">
                             <label className="task-title">Due:</label>
                             <div
                               className={`task-due-date ${

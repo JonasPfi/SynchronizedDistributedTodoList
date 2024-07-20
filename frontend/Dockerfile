@@ -1,6 +1,14 @@
 # Use an official node image as the base image
 FROM node:lts-alpine
 
+# Define build arguments for environment variables
+ARG NGINX_URL
+ARG FRONTEND_PORT
+
+# Set environment variables during the build process
+ENV NGINX_URL=$NGINX_URL
+ENV FRONTEND_PORT=$FRONTEND_PORT
+
 # Set the working directory to /app inside the container
 WORKDIR /usr/src/app
 
@@ -16,8 +24,8 @@ COPY . .
 # Build the React app
 RUN npm run build
 
-# Expose port 3000 to the outside world
-EXPOSE 3000
+# Expose port defined in .env to the outside world
+EXPOSE $FRONTEND_PORT
 
 # Start the application
 CMD ["npm", "run", "dev"]
