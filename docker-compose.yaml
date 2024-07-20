@@ -61,13 +61,20 @@ services:
       - "3000:3000"
 
   nginx:
-    image: nginx:latest
+    build:
+      context: ./nginx
     ports:
       - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       - frontend
       - server
       - socket-server
     restart: always
+    environment:
+      - SOCKET_IO_HOST=${SOCKET_IO_HOST}
+      - SOCKET_IO_PORT=${SOCKET_IO_PORT}
+      - SERVER_HOST=${SERVER_HOST}
+      - SERVER_PORT=${SERVER_PORT}
+      - FRONTEND_HOST=${FRONTEND_HOST}
+      - FRONTEND_PORT=${FRONTEND_PORT}
+      - NGINX_PORT=${NGINX_PORT}
