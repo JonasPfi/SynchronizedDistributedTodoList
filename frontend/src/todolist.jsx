@@ -4,10 +4,11 @@ import "./css/todolist.css";
 import axios from "axios";
 import socketIO from "socket.io-client";
 
-const URL = process.env.NODE_ENV === "production" ? undefined : "http://localhost/";
+const URL =
+  process.env.NODE_ENV === "production" ? undefined : "http://localhost/";
 
-const SOCKET_URL = "http://localhost/socket";
-const socket = socketIO.connect(SOCKET_URL);
+const SOCKET_URL = "localhost";
+let socket = socketIO(SOCKET_URL, { transports: ["websocket"] }).connect();
 
 function TaskList() {
   const [tableData, setTableData] = useState([]);
