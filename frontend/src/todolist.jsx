@@ -10,6 +10,7 @@ let socket = socketIO(URL, { transports: ["websocket"] }).connect();
 function TaskList() {
   const [tableData, setTableData] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [filter, setFilter] = useState("all");
   const [newCategory, setNewCategory] = useState("");
   const [newTask, setNewTask] = useState({
@@ -20,17 +21,18 @@ function TaskList() {
   });
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [taskError, setTaskError] = useState("");
 
-  // SocketIO events
   useEffect(() => {
     loadTableData();
+    loadCategories();
     socket.on("refreshTableData", () => {
       console.log("Received broadcast: refreshTableData");
       loadTableData();
+      loadCategories(); // Load categories again when data is refreshed
     });
   }, []);
 
-  // Loads table data with backend call
   const loadTableData = async () => {
     try {
       const response = await axios.get(`${URL}database`);
@@ -40,8 +42,16 @@ function TaskList() {
     }
   };
 
+  const loadCategories = async () => {
+    try {
+      const response = await axios.get(`${URL}/category`);
+      setCategories(response.data.map((cat) => cat.category_name));
+    } catch (error) {
+      console.error("Error loading categories", error);
+    }
+  };
+
   useEffect(() => {
-    // Map tableData to tasks structure
     const categoriesMap = new Map();
     tableData.forEach((item) => {
       if (!categoriesMap.has(item.category_name)) {
@@ -65,7 +75,6 @@ function TaskList() {
 
   const toggleComplete = (taskId) => {
     const taskElement = document.getElementById(taskId);
-
     if (taskElement) {
       if (taskElement.classList.contains("completed")) {
         taskElement.classList.remove("completed");
@@ -94,44 +103,84 @@ function TaskList() {
     setTasks(updatedTasks);
   };
 
-  const addCategory = () => {
+  const addCategory = async () => {
     if (newCategory) {
-      setTasks([...tasks, { category: newCategory, tasks: [] }]);
-      setNewCategory("");
-      setShowCategoryModal(false);
+      try {
+        const response = await axios.post(`${URL}/category`, { category: newCategory });
+        if (response.status === 200) {
+          setTasks([...tasks, { category: newCategory, tasks: [] }]);
+          setCategories([...categories, newCategory]);
+          setNewCategory("");
+          setShowCategoryModal(false);
+          socket.emit("refreshTableData");
+        }
+      } catch (error) {
+        console.error("Error adding category", error);
+      }
     }
   };
 
-  const addTask = () => {
+  const addTask = async () => {
+    const existingTask = tasks.find((cat) =>
+      cat.tasks.some((task) => task.name === newTask.name)
+    );
+
+    if (existingTask) {
+      setTaskError("Task with the same name already exists.");
+      return;
+    }
+
     if (
       newTask.category &&
       newTask.name &&
       newTask.description &&
       newTask.dueDate
     ) {
-      const updatedTasks = tasks.map((category) => {
-        if (category.category === newTask.category) {
-          const newTaskItem = {
-            id:
-              category.tasks.reduce(
-                (maxId, task) => Math.max(maxId, task.id),
-                0
-              ) + 1,
-            name: newTask.name,
-            description: newTask.description,
-            dueDate: newTask.dueDate,
-            completed: false,
-          };
-          return {
-            ...category,
-            tasks: [...category.tasks, newTaskItem],
-          };
+      if (newTask.name.length > 30) {
+        setTaskError("Task name exceeds 30 characters.");
+        return;
+      }
+
+      if (newTask.description.length > 200) {
+        setTaskError("Task description exceeds 200 characters.");
+        return;
+      }
+
+      try {
+        const response = await axios.post(`${URL}/task`, {
+          title: newTask.name,
+          description: newTask.description,
+          category: newTask.category,
+          dueDate: newTask.dueDate,
+        });
+        if (response.status === 200) {
+          const updatedTasks = tasks.map((category) => {
+            if (category.category === newTask.category) {
+              const newTaskItem = {
+                id: response.data.insertId,
+                name: newTask.name,
+                description: newTask.description,
+                dueDate: newTask.dueDate,
+                completed: false,
+              };
+              return {
+                ...category,
+                tasks: [...category.tasks, newTaskItem],
+              };
+            }
+            return category;
+          });
+          setTasks(updatedTasks);
+          setNewTask({ category: "", name: "", description: "", dueDate: "" });
+          setShowTaskModal(false);
+          setTaskError("");
+          socket.emit("refreshTableData");
         }
-        return category;
-      });
-      setTasks(updatedTasks);
-      setNewTask({ category: "", name: "", description: "", dueDate: "" });
-      setShowTaskModal(false);
+      } catch (error) {
+        console.error("Error adding task", error);
+      }
+    } else {
+      setTaskError("All fields are required.");
     }
   };
 
@@ -180,6 +229,7 @@ function TaskList() {
               placeholder="New Category Name"
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
+              maxLength="30"
             />
             <button onClick={addCategory}>Add Category</button>
             <button onClick={() => setShowCategoryModal(false)}>Cancel</button>
@@ -195,19 +245,25 @@ function TaskList() {
           />
           <div className="modal">
             <h2>Add Task</h2>
-            <input
-              type="text"
-              placeholder="Category"
+            <select
               value={newTask.category}
-              onChange={(e) =>
-                setNewTask({ ...newTask, category: e.target.value })
-              }
-            />
+              onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
+            >
+              <option value="" disabled>
+                Select Category
+              </option>
+              {categories.map((category, index) => (
+                <option key={index} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
             <input
               type="text"
               placeholder="Task Name"
               value={newTask.name}
               onChange={(e) => setNewTask({ ...newTask, name: e.target.value })}
+              maxLength="30"
             />
             <textarea
               placeholder="Description"
@@ -215,6 +271,7 @@ function TaskList() {
               onChange={(e) =>
                 setNewTask({ ...newTask, description: e.target.value })
               }
+              maxLength="200"
             />
             <input
               type="date"
@@ -223,6 +280,7 @@ function TaskList() {
                 setNewTask({ ...newTask, dueDate: e.target.value })
               }
             />
+            {taskError && <div className="error">{taskError}</div>}
             <button onClick={addTask}>Add Task</button>
             <button onClick={() => setShowTaskModal(false)}>Cancel</button>
           </div>
@@ -241,15 +299,15 @@ function TaskList() {
                     const isOverdue = new Date(task.dueDate) < new Date();
                     return (
                       <li
-                        key={task.id} //key to find the right todo with the task id from whole event
+                        key={task.id}
+                        id={task.id}
                         className={`task-item ${
                           task.completed ? "completed" : ""
                         }`}
                       >
                         {/* Todo item: checkmark, title, description and due date */}
                         <div className="task-details">
-                          {/* Checkmark */}
-                          <label className="task-left ckeck-container">
+                          <label className="task-left check-container">
                             <input
                               type="checkbox"
                               checked={task.completed}
@@ -259,7 +317,7 @@ function TaskList() {
                               <path
                                 d="M 0 16 V 56 A 8 8 90 0 0 8 64 H 56 A 8 8 90 0 0 64 56 V 8 A 8 8 90 0 0 56 0 H 8 A 8 8 90 0 0 0 8 V 16 L 32 48 L 64 16 V 8 A 8 8 90 0 0 56 0 H 8 A 8 8 90 0 0 0 8 V 56 A 8 8 90 0 0 8 64 H 56 A 8 8 90 0 0 64 56 V 16"
                                 pathLength="575.0541381835938"
-                                class="path"
+                                className="path"
                               ></path>
                             </svg>
                           </label>
