@@ -9,7 +9,7 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 8080
+EXPOSE $SERVER_PORT
 
 # Workaround - wait for db to start about 30 sec.
 # Fast PCs should be done in less than 20 sec.

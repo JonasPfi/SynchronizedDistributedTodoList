@@ -54,11 +54,11 @@ services:
   frontend:
     build:
       context: ./frontend
+      args:
+        - NGINX_URL=${NGINX_URL}
+        - FRONTEND_PORT=${FRONTEND_PORT}
     ports:
       - "3000:3000"
-    environment:
-      SERVER_URL: ${SERVER_URL}
-      SOCKET_IO_URL: ${SOCKET_URL}
 
   nginx:
     image: nginx:latest

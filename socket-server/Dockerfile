@@ -9,6 +9,6 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 9090
+EXPOSE $SOCKET_IO_PORT
 
 CMD node socket-server.js
