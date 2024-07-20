@@ -44,7 +44,7 @@ function TaskList() {
 
   const loadCategories = async () => {
     try {
-      const response = await axios.get(`${URL}/category`);
+      const response = await axios.get(`${URL}category`);
       setCategories(response.data.map((cat) => cat.category_name));
     } catch (error) {
       console.error("Error loading categories", error);
@@ -106,7 +106,7 @@ function TaskList() {
   const addCategory = async () => {
     if (newCategory) {
       try {
-        const response = await axios.post(`${URL}/category`, { category: newCategory });
+        const response = await axios.post(`${URL}category`, { category: newCategory });
         if (response.status === 200) {
           setTasks([...tasks, { category: newCategory, tasks: [] }]);
           setCategories([...categories, newCategory]);
@@ -147,7 +147,7 @@ function TaskList() {
       }
 
       try {
-        const response = await axios.post(`${URL}/task`, {
+        const response = await axios.post(`${URL}todo`, {
           title: newTask.name,
           description: newTask.description,
           category: newTask.category,

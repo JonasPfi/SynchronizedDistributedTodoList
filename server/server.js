@@ -106,8 +106,8 @@ app.delete('/todotable/:id', (req, res) => {
     });
 });
 
-// POST path for adding a new task
-app.post('/task', (req, res) => {
+// POST path for adding a new todo
+app.post('/todo', (req, res) => {
     if (typeof req.body !== "undefined" && typeof req.body.title !== "undefined" && typeof req.body.description !== "undefined" && typeof req.body.category !== "undefined" && typeof req.body.dueDate !== "undefined") {
         let title = req.body.title;
         let description = req.body.description;
@@ -128,7 +128,6 @@ app.post('/task', (req, res) => {
         console.error("Client send no correct data!")
         res.status(400).json({ message: 'This function requires a body with "title", "description", "category", and "dueDate"' });
     }
-    io.emit('refreshTableData');
 });
 
 // POST path for adding a new category
