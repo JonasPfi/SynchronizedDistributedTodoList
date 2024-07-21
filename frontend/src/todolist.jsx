@@ -105,6 +105,12 @@ function TaskList() {
 
   const addCategory = async () => {
     if (newCategory) {
+      // check if category already exists
+      if (categories.includes(newCategory)) {
+        alert("Category already exists.");
+        return;
+      }
+  
       try {
         const response = await axios.post(`${URL}category`, { category: newCategory });
         if (response.status === 200) {
