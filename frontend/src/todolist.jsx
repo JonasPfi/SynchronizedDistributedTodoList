@@ -26,6 +26,20 @@ function TodoList() {
   useEffect(() => {
     loadTableData();
     loadCategories();
+
+    socket.on('initializeLocks', (lockedTodos) => {
+      console.log("Received locked todos on initialization:", lockedTodos);
+      setTodos(prevTodos => {
+        const updatedTodos = prevTodos.map(category => ({
+          ...category,
+          todos: category.todos.map(todo =>
+            lockedTodos.includes(todo.id) ? { ...todo, isLocked: true } : todo
+          )
+        }));
+        return updatedTodos;
+      });
+    });
+
     socket.on('lockElement', (todoId) => {
       console.log("Received broadcast: lockElement for todoId:", todoId);
       setTodos(prevTodos => {
@@ -38,7 +52,27 @@ function TodoList() {
         return updatedTodos;
       });
     });
+
+    socket.on('unlockElement', (todoId) => {
+      console.log("Received broadcast: unlockElement for todoId:", todoId);
+      setTodos(prevTodos => {
+        const updatedTodos = prevTodos.map(category => ({
+          ...category,
+          todos: category.todos.map(todo =>
+            todo.id === todoId ? { ...todo, isLocked: false } : todo
+          )
+        }));
+        return updatedTodos;
+      });
+    });
+
+    return () => {
+      socket.off('initializeLocks');
+      socket.off('lockElement');
+      socket.off('unlockElement');
+    };
   }, []);
+
 
   const loadTableData = async () => {
     try {
@@ -101,8 +135,11 @@ function TodoList() {
   };
 
   const editTodo = (todoId) => {
-    console.log("broadcastEditTodo");
-    socket.emit('broadcastEditTodo', todoId);
+    socket.emit('editTodo', todoId);
+  };
+  const finishedEditTodo =  (todoId) => {
+    console.log("unlocking");
+    socket.emit('unlockTodo', todoId);
   };
 
   const addCategory = async () => {
@@ -195,6 +232,7 @@ function TodoList() {
       return true;
     }),
   }));
+
 
   return (
     <div className="App">
@@ -332,7 +370,7 @@ function TodoList() {
                                 inputClassName="todo-title-edit"
                                 className="todo-title"
                                 onEditMode={() => editTodo(todo.id)}
-                                readonly={todo.isLocked}
+                                onBlur={() => finishedEditTodo(todo.id)}
                               ></EditText>
                             </React.Fragment>
                             {/* Description */}
@@ -345,6 +383,7 @@ function TodoList() {
                                   inputClassName="todo-description-edit"
                                   className="todo-description"
                                   onEditMode={() => editTodo(todo.id)}
+                                  onBlur={() => finishedEditTodo(todo.id)}
                                   readonly={todo.isLocked}
                                 ></EditTextarea>
                               </React.Fragment>
