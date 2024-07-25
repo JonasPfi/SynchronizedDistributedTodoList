@@ -22,10 +22,8 @@ const io = socketIO(expressServer, {
 
 io.on("connection", async (socket) => {
     console.log("A user connected", socket.id);
+
     socket.on("disconnect", () => {
         console.log("A user disconnected");
-    });
-    socket.on("editTodo", (id, type) => {
-        socket.broadcast.emit('editTodo', id, type);
     });
 });

@@ -113,7 +113,7 @@ app.post('/todo', (req, res) => {
         let description = req.body.description;
         let category = req.body.category;
         let dueDate = req.body.dueDate;
-        console.log("Client send todo insert request with 'title': " + title + " ; description: " + description + " ; category: " + category + " ; dueDate: " + dueDate);
+        console.log("Client send task insert request with 'title': " + title + " ; description: " + description + " ; category: " + category + " ; dueDate: " + dueDate);
         const query = "INSERT INTO `todo` (`todo_title`, `todo_description`, `todo_due_date`, `category_id`) VALUES (?, ?, ?, (SELECT category_id FROM category WHERE category_name = ? LIMIT 1))";
         connection.query(query, [title, description, dueDate, category], function (error, results, fields) {
             if (error) {
