@@ -26,4 +26,8 @@ io.on("connection", async (socket) => {
     socket.on("disconnect", () => {
         console.log("A user disconnected");
     });
+
+    socket.on("broadcastEditTodo" , (todoId) => {
+        socket.broadcast.emit('lockElement', todoId);
+    })
 });

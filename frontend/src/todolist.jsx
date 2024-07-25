@@ -26,10 +26,17 @@ function TodoList() {
   useEffect(() => {
     loadTableData();
     loadCategories();
-    socket.on("refreshTableData", () => {
-      console.log("Received broadcast: refreshTableData");
-      loadTableData();
-      loadCategories(); // Load categories again when data is refreshed
+    socket.on('lockElement', (todoId) => {
+      console.log("Received broadcast: lockElement for todoId:", todoId);
+      setTodos(prevTodos => {
+        const updatedTodos = prevTodos.map(category => ({
+          ...category,
+          todos: category.todos.map(todo =>
+            todo.id === todoId ? { ...todo, isLocked: true } : todo
+          )
+        }));
+        return updatedTodos;
+      });
     });
   }, []);
 
@@ -93,14 +100,9 @@ function TodoList() {
     setTodos(updatedTodos);
   };
 
-  const editTodo = (todoId, newName) => {
-    const updatedTodos = todos.map((category) => ({
-      ...category,
-      todos: category.todos.map((todo) =>
-        todo.id === todoId ? { ...todo, name: newName } : todo
-      ),
-    }));
-    setTodos(updatedTodos);
+  const editTodo = (todoId) => {
+    console.log("broadcastEditTodo");
+    socket.emit('broadcastEditTodo', todoId);
   };
 
   const addCategory = async () => {
@@ -301,9 +303,8 @@ function TodoList() {
                       <li
                         key={todo.id}
                         id={todo.id}
-                        className={`todo-item ${
-                          todo.completed ? "completed" : ""
-                        }`}
+                        className={`todo-item ${todo.completed ? "completed" : ""
+                          }`}
                       >
                         {/* Todo item: checkmark, title, description and due date */}
                         <div className="todo-details">
@@ -330,6 +331,8 @@ function TodoList() {
                                 defaultValue={todo.name}
                                 inputClassName="todo-title-edit"
                                 className="todo-title"
+                                onEditMode={() => editTodo(todo.id)}
+                                readonly={todo.isLocked}
                               ></EditText>
                             </React.Fragment>
                             {/* Description */}
@@ -341,6 +344,8 @@ function TodoList() {
                                   rows={3}
                                   inputClassName="todo-description-edit"
                                   className="todo-description"
+                                  onEditMode={() => editTodo(todo.id)}
+                                  readonly={todo.isLocked}
                                 ></EditTextarea>
                               </React.Fragment>
                             </div>
@@ -349,9 +354,8 @@ function TodoList() {
                           <div className="todo-text-duo-date">
                             <label className="todo-title">Due:</label>
                             <div
-                              className={`todo-due-date ${
-                                isOverdue ? "overdue" : "ontime"
-                              }`}
+                              className={`todo-due-date ${isOverdue ? "overdue" : "ontime"
+                                }`}
                             >
                               {new Date(todo.dueDate).toLocaleDateString(
                                 "de-DE",
