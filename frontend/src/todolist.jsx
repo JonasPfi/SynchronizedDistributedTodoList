@@ -137,8 +137,7 @@ function TodoList() {
   const editTodo = (todoId) => {
     socket.emit('editTodo', todoId);
   };
-  const finishedEditTodo =  (todoId) => {
-    console.log("unlocking");
+  const finishedEditTodo = (todoId) => {
     socket.emit('unlockTodo', todoId);
   };
 
@@ -341,8 +340,7 @@ function TodoList() {
                       <li
                         key={todo.id}
                         id={todo.id}
-                        className={`todo-item ${todo.completed ? "completed" : ""
-                          }`}
+                        className={`todo-item ${todo.isLocked ? 'todo-item-locked' : ''} ${todo.completed ? 'completed' : ''}`}
                       >
                         {/* Todo item: checkmark, title, description and due date */}
                         <div className="todo-details">
@@ -393,21 +391,18 @@ function TodoList() {
                           <div className="todo-text-duo-date">
                             <label className="todo-title">Due:</label>
                             <div
-                              className={`todo-due-date ${isOverdue ? "overdue" : "ontime"
-                                }`}
+                              className={`todo-due-date ${isOverdue ? "overdue" : "ontime"}`}
                             >
-                              {new Date(todo.dueDate).toLocaleDateString(
-                                "de-DE",
-                                {
-                                  year: "numeric",
-                                  month: "2-digit",
-                                  day: "2-digit",
-                                }
-                              )}
+                              {new Date(todo.dueDate).toLocaleDateString("de-DE", {
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit",
+                              })}
                             </div>
                           </div>
                         </div>
                       </li>
+
                     );
                   })}
                 </ul>

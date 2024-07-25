@@ -63,7 +63,6 @@ h1 {
   margin-bottom: 10px;
   transition: background-color 0.3s ease;
 }
-
 .todo-item.completed {
   text-decoration: line-through;
   color: grey;
@@ -72,6 +71,16 @@ h1 {
 .todo-item:hover {
   background-color: #f1f1f1;
 }
+
+.todo-item-locked {
+  background-color: #f8d7da; 
+  border: 2px solid #f5c6cb; 
+}
+.todo-item-locked:hover {
+  background-color: #f8d7da; 
+  border: 2px solid #f5c6cb; 
+}
+
 
 .todo-left {
   display: flex;
@@ -183,6 +192,7 @@ input[type="checkbox"] {
 }
 
 .todo-description-edit {
+  font-family: "Arial", sans-serif;
   width: 100%;
   height: 150px;
   padding: 12px 20px;
