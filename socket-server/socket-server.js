@@ -16,8 +16,9 @@ console.log(`Running on http://${HOST}:${PORT}`);
 // Define SocketIO
 const io = socketIO(expressServer, {
     cors: {
-        origin: '*',
+        origin: '*', 
     },
+    path: "/socket.io/"
 });
 
 // Object to store which user has locked which todo
