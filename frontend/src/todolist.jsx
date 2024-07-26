@@ -6,9 +6,7 @@ import socketIO from "socket.io-client";
 
 const URL = import.meta.env.VITE_NGINX_URL ? import.meta.env.VITE_NGINX_URL : "http://localhost/";
 
-const socket = socketIO({
-  path: "/socket.io/"
-});
+
 
 function TodoList() {
   const [tableData, setTableData] = useState([]);
@@ -29,6 +27,9 @@ function TodoList() {
   useEffect(() => {
     loadTableData();
     loadCategories();
+    const socket = socketIO({
+      path: "/socket.io/"
+    });
 
     socket.on('initializeLocks', (lockedTodos) => {
       console.log("Received locked todos on initialization:", lockedTodos);
