@@ -373,6 +373,7 @@ function TodoList() {
                                 className="todo-title"
                                 onEditMode={() => editTodo(todo.id)}
                                 onBlur={() => finishedEditTodo(todo.id)}
+                                readonly={todo.isLocked}
                               ></EditText>
                             </React.Fragment>
                             {/* Description */}
