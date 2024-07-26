@@ -1,13 +1,14 @@
+# Dockerfile
 # Use an official node image as the base image
 FROM node:lts-alpine
 
 # Define build arguments for environment variables
-ARG NGINX_URL
-ARG FRONTEND_PORT
+ARG VITE_NGINX_URL
+ARG VITE_FRONTEND_PORT
 
 # Set environment variables during the build process
-ENV NGINX_URL=$NGINX_URL
-ENV FRONTEND_PORT=$FRONTEND_PORT
+ENV VITE_NGINX_URL=$VITE_NGINX_URL
+ENV VITE_FRONTEND_PORT=$VITE_FRONTEND_PORT
 
 # Set the working directory to /app inside the container
 WORKDIR /usr/src/app
@@ -21,11 +22,11 @@ RUN npm install
 # Copy the rest of the application code to the working directory
 COPY . .
 
+# Expose port defined in .env to the outside world
+EXPOSE $VITE_FRONTEND_PORT
+
 # Build the React app
 RUN npm run build
-
-# Expose port defined in .env to the outside world
-EXPOSE $FRONTEND_PORT
 
 # Start the application
 CMD ["npm", "run", "dev"]

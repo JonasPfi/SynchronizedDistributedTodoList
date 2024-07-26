@@ -4,7 +4,7 @@ import "./css/todolist.css";
 import axios from "axios";
 import socketIO from "socket.io-client";
 
-const URL = process.env.NGINX_URL ? process.env.NGINX_URL : "http://localhost/";
+const URL = import.meta.env.VITE_NGINX_URL ? import.meta.env.VITE_NGINX_URL : "http://localhost/";
 
 const socket = socketIO({
   path: "/socket.io/"

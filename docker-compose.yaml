@@ -1,7 +1,6 @@
 version: '3.3'
 
 services:
-
   server:
     build: server
     ports:
@@ -27,7 +26,7 @@ services:
     restart: always
     environment:
       PORT: ${SOCKET_IO_PORT}
-      HOST: ${SCOKET_IO_HOST}
+      HOST: ${SOCKET_IO_HOST}
       FRONTEND_URL: ${FRONTEND_URL}
     links:
       - todolistdb
@@ -55,10 +54,13 @@ services:
     build:
       context: ./frontend
       args:
-        - NGINX_URL=${NGINX_URL}
-        - FRONTEND_PORT=${FRONTEND_PORT}
+        - VITE_NGINX_URL=${VITE_NGINX_URL}
+        - VITE_FRONTEND_PORT=${VITE_FRONTEND_PORT}
     ports:
       - "3000:3000"
+    environment:
+      - VITE_NGINX_URL=${VITE_NGINX_URL}
+      - VITE_FRONTEND_PORT=${VITE_FRONTEND_PORT}
 
   nginx:
     image: nginx:latest

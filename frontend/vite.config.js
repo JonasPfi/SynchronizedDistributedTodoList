@@ -5,9 +5,11 @@ import react from '@vitejs/plugin-react-swc'
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: process.env.FRONTEND_PORT,
+    port: parseInt(process.env.VITE_FRONTEND_PORT) || 3000, // Use the VITE_ prefix for environment variables
   },
   define: {
-    "process.env": {},
+    'process.env': {
+      VITE_NGINX_URL: process.env.VITE_NGINX_URL,
+    },
   },
 });
