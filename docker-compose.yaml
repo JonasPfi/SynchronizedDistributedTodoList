@@ -4,34 +4,54 @@ services:
   server:
     build: server
     ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
+      - "8080:8080"
     restart: always
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_HOSTNAME: ${MYSQL_HOSTNAME}
-      PORT: ${SERVER_PORT}
-      HOST: ${SERVER_HOST}
+      PORT: 8080
+      HOST: server
       FRONTEND_URL: ${FRONTEND_URL}
     links:
       - todolistdb
     depends_on:
       - todolistdb
-
-  socket-server:
+    networks:
+      - loadbalancing
+    
+  socket-server-1:
     build: socket-server
     ports:
       - "9090:9090"
     restart: always
     environment:
-      PORT: ${SOCKET_IO_PORT}
-      HOST: ${SOCKET_IO_HOST}
+      PORT: 9090
+      HOST: socket-server-1
       FRONTEND_URL: ${FRONTEND_URL}
     links:
       - todolistdb
     depends_on:
       - todolistdb
+    networks:
+      - loadbalancing
+
+  socket-server-2:
+    build: socket-server
+    ports:
+      - "9091:9090"
+    restart: always
+    environment:
+      PORT: 9090
+      HOST: socket-server-2
+      FRONTEND_URL: ${FRONTEND_URL}
+    links:
+      - todolistdb
+    depends_on:
+      - todolistdb
+    networks:
+      - loadbalancing
 
   todolistdb:
     build: db
@@ -41,6 +61,8 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    networks:
+      - loadbalancing
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -49,6 +71,8 @@ services:
       - 8085:80
     environment:
       PMA_HOST: todolistdb
+    networks:
+      - loadbalancing
 
   frontend:
     build:
@@ -57,18 +81,26 @@ services:
         - VITE_NGINX_URL=${VITE_NGINX_URL}
         - VITE_FRONTEND_PORT=${VITE_FRONTEND_PORT}
     ports:
-      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+      - "3000:3000"
     environment:
       - VITE_NGINX_URL=${VITE_NGINX_URL}
+    networks:
+      - loadbalancing
 
   nginx:
     image: nginx:latest
     ports:
-      - "${NGINX_PORT}:${NGINX_PORT}"
+      - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - loadbalancing
     depends_on:
       - frontend
       - server
-      - socket-server
+      - socket-server-1
+      - socket-server-2
     restart: always
+
+networks:
+  loadbalancing:
