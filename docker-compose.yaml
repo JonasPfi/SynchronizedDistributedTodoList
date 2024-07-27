@@ -27,7 +27,7 @@ services:
     restart: always
     environment:
       PORT: ${SOCKET_IO_PORT}
-      HOST: ${SCOKET_IO_HOST}
+      HOST: ${SOCKET_IO_HOST}
       FRONTEND_URL: ${FRONTEND_URL}
     links:
       - todolistdb
