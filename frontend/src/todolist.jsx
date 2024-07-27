@@ -5,7 +5,7 @@ import axios from "axios";
 import socketIO from "socket.io-client";
 
 const URL = import.meta.env.VITE_NGINX_URL ? import.meta.env.VITE_NGINX_URL : "http://localhost/";
-
+let socket;
 
 
 function TodoList() {
@@ -27,7 +27,7 @@ function TodoList() {
   useEffect(() => {
     loadTableData();
     loadCategories();
-    const socket = socketIO({
+    socket = socketIO({
       path: "/socket.io/"
     });
 
