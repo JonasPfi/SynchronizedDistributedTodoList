@@ -4,9 +4,13 @@ import "./css/todolist.css";
 import axios from "axios";
 import socketIO from "socket.io-client";
 
-const URL = import.meta.env.VITE_NGINX_URL ? import.meta.env.VITE_NGINX_URL : "http://localhost/";
-let socket;
+const URL = import.meta.env.VITE_NGINX_URL
+  ? import.meta.env.VITE_NGINX_URL
+  : "http://localhost/";
 
+const socket = socketIO({
+  path: "/socket.io/",
+});
 
 function TodoList() {
   const [tableData, setTableData] = useState([]);
@@ -27,61 +31,58 @@ function TodoList() {
   useEffect(() => {
     loadTableData();
     loadCategories();
-    socket = socketIO({
-      path: "/socket.io/"
-    });
 
-    socket.on('initializeLocks', (lockedTodos) => {
-      console.log("Received locked todos on initialization:", lockedTodos);
-      setTodos(prevTodos => {
-        const updatedTodos = prevTodos.map(category => ({
+    socket.on("lockedTodos", (lockedTodos) => {
+      console.log("Received locked todos:", lockedTodos);
+      setTodos((prevTodos) => {
+        const updatedTodos = prevTodos.map((category) => ({
           ...category,
-          todos: category.todos.map(todo =>
+          todos: category.todos.map((todo) =>
             lockedTodos.includes(todo.id) ? { ...todo, isLocked: true } : todo
-          )
+          ),
         }));
         return updatedTodos;
       });
     });
 
-    socket.on('lockElement', (todoId) => {
+    socket.on("lockElement", (todoId) => {
       console.log("Received broadcast: lockElement for todoId:", todoId);
-      setTodos(prevTodos => {
-        const updatedTodos = prevTodos.map(category => ({
+      setTodos((prevTodos) => {
+        const updatedTodos = prevTodos.map((category) => ({
           ...category,
-          todos: category.todos.map(todo =>
+          todos: category.todos.map((todo) =>
             todo.id === todoId ? { ...todo, isLocked: true } : todo
-          )
+          ),
         }));
         return updatedTodos;
       });
     });
 
-    socket.on('unlockElement', (todoId) => {
+    socket.on("unlockElement", (todoId) => {
       console.log("Received broadcast: unlockElement for todoId:", todoId);
-      setTodos(prevTodos => {
-        const updatedTodos = prevTodos.map(category => ({
+      setTodos((prevTodos) => {
+        const updatedTodos = prevTodos.map((category) => ({
           ...category,
-          todos: category.todos.map(todo =>
+          todos: category.todos.map((todo) =>
             todo.id === todoId ? { ...todo, isLocked: false } : todo
-          )
+          ),
         }));
         return updatedTodos;
       });
     });
 
     return () => {
-      socket.off('initializeLocks');
-      socket.off('lockElement');
-      socket.off('unlockElement');
+      socket.off("initializeLocks");
+      socket.off("lockElement");
+      socket.off("unlockElement");
     };
   }, []);
-
 
   const loadTableData = async () => {
     try {
       const response = await axios.get(`${URL}database`);
       setTableData(response.data);
+      socket.emit("getLockedTodos");
     } catch (error) {
       console.error("Error loading data", error);
     }
@@ -139,16 +140,18 @@ function TodoList() {
   };
 
   const editTodo = (todoId) => {
-    socket.emit('editTodo', todoId);
+    socket.emit("editTodo", todoId);
   };
   const finishedEditTodo = (todoId) => {
-    socket.emit('unlockTodo', todoId);
+    socket.emit("unlockTodo", todoId);
   };
 
   const addCategory = async () => {
     if (newCategory) {
       try {
-        const response = await axios.post(`${URL}category`, { category: newCategory });
+        const response = await axios.post(`${URL}category`, {
+          category: newCategory,
+        });
         if (response.status === 200) {
           setTodos([...todos, { category: newCategory, todos: [] }]);
           setCategories([...categories, newCategory]);
@@ -236,7 +239,6 @@ function TodoList() {
     }),
   }));
 
-
   return (
     <div className="App">
       <div className="controls">
@@ -290,7 +292,9 @@ function TodoList() {
             <h2>Add Todo</h2>
             <select
               value={newTodo.category}
-              onChange={(e) => setNewTodo({ ...newTodo, category: e.target.value })}
+              onChange={(e) =>
+                setNewTodo({ ...newTodo, category: e.target.value })
+              }
             >
               <option value="" disabled>
                 Select Category
@@ -344,7 +348,9 @@ function TodoList() {
                       <li
                         key={todo.id}
                         id={todo.id}
-                        className={`todo-item ${todo.isLocked ? 'todo-item-locked' : ''} ${todo.completed ? 'completed' : ''}`}
+                        className={`todo-item ${
+                          todo.isLocked ? "todo-item-locked" : ""
+                        } ${todo.completed ? "completed" : ""}`}
                       >
                         {/* Todo item: checkmark, title, description and due date */}
                         <div className="todo-details">
@@ -396,18 +402,22 @@ function TodoList() {
                           <div className="todo-text-duo-date">
                             <label className="todo-title">Due:</label>
                             <div
-                              className={`todo-due-date ${isOverdue ? "overdue" : "ontime"}`}
+                              className={`todo-due-date ${
+                                isOverdue ? "overdue" : "ontime"
+                              }`}
                             >
-                              {new Date(todo.dueDate).toLocaleDateString("de-DE", {
-                                year: "numeric",
-                                month: "2-digit",
-                                day: "2-digit",
-                              })}
+                              {new Date(todo.dueDate).toLocaleDateString(
+                                "de-DE",
+                                {
+                                  year: "numeric",
+                                  month: "2-digit",
+                                  day: "2-digit",
+                                }
+                              )}
                             </div>
                           </div>
                         </div>
                       </li>
-
                     );
                   })}
                 </ul>

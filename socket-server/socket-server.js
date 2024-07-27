@@ -34,9 +34,6 @@ const lockedTodos = new Map();
 io.on("connection", (socket) => {
     console.log(`A user connected with ID: ${socket.id}`);
 
-    // Send all currently locked todos to the newly connected client
-    socket.emit('initializeLocks', Array.from(lockedTodos.keys()));
-
     socket.on("disconnect", () => {
         console.log(`A user disconnected with ID: ${socket.id}`);
         // Remove all locks held by this user when they disconnect
@@ -47,6 +44,11 @@ io.on("connection", (socket) => {
                 socket.broadcast.emit('unlockElement', todoId);
             }
         });
+    });
+
+    socket.on("getLockedTodos", () => {
+        console.log(`User ${socket.id} requested locked todos`);
+        socket.emit('lockedTodos', Array.from(lockedTodos.keys()));
     });
 
     socket.on("editTodo", (todoId) => {
