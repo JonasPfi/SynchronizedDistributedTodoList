@@ -22,6 +22,7 @@ function TaskList() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [taskError, setTaskError] = useState("");
+  const [categoryError, setCategoryError] = useState(""); // New state for category error
 
   useEffect(() => {
     loadTableData();
@@ -105,6 +106,10 @@ function TaskList() {
 
   const addCategory = async () => {
     if (newCategory) {
+      if (categories.includes(newCategory)) {
+        setCategoryError("Category already exists.");
+        return;
+      }
       try {
         const response = await axios.post(`${URL}category`, { category: newCategory });
         if (response.status === 200) {
@@ -112,6 +117,7 @@ function TaskList() {
           setCategories([...categories, newCategory]);
           setNewCategory("");
           setShowCategoryModal(false);
+          setCategoryError("");
           socket.emit("refreshTableData");
         }
       } catch (error) {
@@ -231,6 +237,7 @@ function TaskList() {
               onChange={(e) => setNewCategory(e.target.value)}
               maxLength="30"
             />
+            {categoryError && <div className="error">{categoryError}</div>}
             <button onClick={addCategory}>Add Category</button>
             <button onClick={() => setShowCategoryModal(false)}>Cancel</button>
           </div>
@@ -315,7 +322,7 @@ function TaskList() {
                             />
                             <svg viewBox="0 0 64 64" height="2em" width="2em">
                               <path
-                                d="M 0 16 V 56 A 8 8 90 0 0 8 64 H 56 A 8 8 90 0 0 64 56 V 8 A 8 8 90 0 0 56 0 H 8 A 8 8 90 0 0 0 8 V 16 L 32 48 L 64 16 V 8 A 8 8 90 0 0 56 0 H 8 A 8 8 90 0 0 0 8 V 56 A 8 8 90 0 0 8 64 H 56 A 8 8 90 0 0 64 56 V 16"
+                                d="M 0 16 V 56 A 8 8 90 0 0 0 8 64 H 56 A 8 8 90 0 0 0 64 56 V 8 A 8 8 90 0 0 0 56 0 H 8 A 8 8 90 0 0 0 0 8 V 16 L 32 48 L 64 16 V 8 A 8 8 90 0 0 0 56 0 H 8 A 8 8 90 0 0 0 0 8 V 56 A 8 8 90 0 0 0 8 64 H 56 A 8 8 90 0 0 0 64 56 V 16"
                                 pathLength="575.0541381835938"
                                 className="path"
                               ></path>
