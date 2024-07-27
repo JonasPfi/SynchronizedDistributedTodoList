@@ -23,9 +23,11 @@ const expressServer = app.listen(PORT, HOST, () => {
 // Define SocketIO
 const io = socketIO(expressServer, {
     cors: {
-        origin: '*', 
+        origin: '*',
     },
-    path: "/socket.io/"
+    path: "/socket.io/",
+    methods: ["GET", "POST"],
+    credentials: true
 });
 
 // Object to store which user has locked which todo

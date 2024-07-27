@@ -10,7 +10,8 @@ const URL = import.meta.env.VITE_NGINX_URL
 
 const socket = socketIO({
   path: "/socket.io/",
-  transports: [ "websocket" ],
+  transports: ["websocket"],
+  withCredentials: true,
 });
 
 function TodoList() {
