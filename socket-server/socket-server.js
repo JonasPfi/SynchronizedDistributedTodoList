@@ -1,5 +1,24 @@
 const express = require('express');
 const socketIO = require('socket.io');
+const { Redis } = require('ioredis');
+const { createAdapter } = require('@socket.io/redis-adapter');
+
+// Create and configure Redis clients
+const pubClient = new Redis({
+    host: 'redis',
+    port: 6379
+});
+const subClient = pubClient.duplicate();
+
+// Error handling for Redis clients
+pubClient.on('error', (err) => {
+    console.error('Redis pubClient error:', err);
+});
+
+subClient.on('error', (err) => {
+    console.error('Redis subClient error:', err);
+});
+
 const app = express();
 
 const PORT = process.env.PORT || 9090;
@@ -22,6 +41,7 @@ const expressServer = app.listen(PORT, HOST, () => {
 
 // Define SocketIO
 const io = socketIO(expressServer, {
+    adapter: createAdapter(pubClient, subClient),
     cors: {
         origin: '*',
     },
