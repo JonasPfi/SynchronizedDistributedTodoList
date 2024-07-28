@@ -135,18 +135,35 @@ app.post('/category', (req, res) => {
     if (typeof req.body !== "undefined" && typeof req.body.category !== "undefined") {
         let category = req.body.category;
         console.log("Client send category insert request with 'category': " + category);
-        const query = "INSERT INTO `category` (`category_name`) VALUES (?)";
-        connection.query(query, [category], function (error, results, fields) {
-            if (error) {
-                console.error(error);
-                res.status(500).json(error);
+
+        // First, check if the category already exists
+        const checkQuery = "SELECT COUNT(*) as count FROM `category` WHERE `category_name` = ?";
+        connection.query(checkQuery, [category], function (checkError, checkResults) {
+            if (checkError) {
+                console.error('Error checking category existence:', checkError);
+                res.status(500).json(checkError);
+                return;
+            }
+
+            if (checkResults[0].count > 0) {
+                // If the category already exists, send an error message
+                res.status(400).json({ message: 'Category already exists.' });
             } else {
-                console.log('Success answer: ', results);
-                res.status(200).json(results);
+                // If the category does not exist, insert it into the database
+                const query = "INSERT INTO `category` (`category_name`) VALUES (?)";
+                connection.query(query, [category], function (error, results, fields) {
+                    if (error) {
+                        console.error('Error inserting category:', error);
+                        res.status(500).json(error);
+                    } else {
+                        console.log('Success answer: ', results);
+                        res.status(200).json(results);
+                    }
+                });
             }
         });
     } else {
-        console.error("Client send no correct data!")
+        console.error("Client send no correct data!");
         res.status(400).json({ message: 'This function requires a body with "category"' });
     }
 });
