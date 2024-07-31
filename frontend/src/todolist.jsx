@@ -27,8 +27,8 @@ function TodoList() {
     dueDate: "",
   });
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [showTaskModal, setShowTaskModal] = useState(false);
-  const [taskError, setTaskError] = useState("");
+  const [showTodoModal, setShowTodoModal] = useState(false);
+  const [todoError, setTodoError] = useState("");
   const [categoryError, setCategoryError] = useState(""); // New state for category error
 
   useEffect(() => {
