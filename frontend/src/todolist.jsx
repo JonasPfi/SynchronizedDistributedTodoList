@@ -27,8 +27,9 @@ function TodoList() {
     dueDate: "",
   });
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [showTodoModal, setShowTodoModal] = useState(false);
-  const [todoError, setTodoError] = useState("");
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [taskError, setTaskError] = useState("");
+  const [categoryError, setCategoryError] = useState(""); // New state for category error
 
   useEffect(() => {
     loadTableData();
@@ -150,6 +151,10 @@ function TodoList() {
 
   const addCategory = async () => {
     if (newCategory) {
+      if (categories.includes(newCategory)) {
+        setCategoryError("Category already exists.");
+        return;
+      }
       try {
         const response = await axios.post(`${URL}category`, {
           category: newCategory,
@@ -159,6 +164,7 @@ function TodoList() {
           setCategories([...categories, newCategory]);
           setNewCategory("");
           setShowCategoryModal(false);
+          setCategoryError("");
           socket.emit("refreshTableData");
         }
       } catch (error) {
@@ -278,6 +284,7 @@ function TodoList() {
               onChange={(e) => setNewCategory(e.target.value)}
               maxLength="30"
             />
+            {categoryError && <div className="error">{categoryError}</div>}
             <button onClick={addCategory}>Add Category</button>
             <button onClick={() => setShowCategoryModal(false)}>Cancel</button>
           </div>

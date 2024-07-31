@@ -27,8 +27,8 @@ services:
       - "9090:9090"
     restart: always
     environment:
-      PORT: 9090
-      HOST: socket-server-1
+      PORT: ${SOCKET_IO_PORT}
+      HOST: ${SOCKET_IO_HOST}
       FRONTEND_URL: ${FRONTEND_URL}
     links:
       - todolistdb
