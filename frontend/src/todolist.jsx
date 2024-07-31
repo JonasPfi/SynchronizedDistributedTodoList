@@ -4,40 +4,88 @@ import "./css/todolist.css";
 import axios from "axios";
 import socketIO from "socket.io-client";
 
-const URL = process.env.NGINX_URL ? undefined : "http://localhost/";
-let socket = socketIO(URL, { transports: ["websocket"] }).connect();
+const URL = import.meta.env.VITE_NGINX_URL
+  ? import.meta.env.VITE_NGINX_URL
+  : "http://localhost/";
 
-function TaskList() {
+const socket = socketIO({
+  path: "/socket.io/",
+  transports: ["websocket"],
+  withCredentials: true,
+});
+
+function TodoList() {
   const [tableData, setTableData] = useState([]);
-  const [tasks, setTasks] = useState([]);
+  const [todos, setTodos] = useState([]);
   const [categories, setCategories] = useState([]);
   const [filter, setFilter] = useState("all");
   const [newCategory, setNewCategory] = useState("");
-  const [newTask, setNewTask] = useState({
+  const [newTodo, setNewTodo] = useState({
     category: "",
     name: "",
     description: "",
     dueDate: "",
   });
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [showTaskModal, setShowTaskModal] = useState(false);
-  const [taskError, setTaskError] = useState("");
+  const [showTodoModal, setShowTodoModal] = useState(false);
+  const [todoError, setTodoError] = useState("");
   const [categoryError, setCategoryError] = useState(""); // New state for category error
 
   useEffect(() => {
     loadTableData();
     loadCategories();
-    socket.on("refreshTableData", () => {
-      console.log("Received broadcast: refreshTableData");
-      loadTableData();
-      loadCategories(); // Load categories again when data is refreshed
+
+    socket.on("lockedTodos", (lockedTodos) => {
+      console.log("Received locked todos:", lockedTodos);
+      setTodos((prevTodos) => {
+        const updatedTodos = prevTodos.map((category) => ({
+          ...category,
+          todos: category.todos.map((todo) =>
+            lockedTodos.includes(todo.id) ? { ...todo, isLocked: true } : todo
+          ),
+        }));
+        return updatedTodos;
+      });
     });
+
+    socket.on("lockElement", (todoId) => {
+      console.log("Received broadcast: lockElement for todoId:", todoId);
+      setTodos((prevTodos) => {
+        const updatedTodos = prevTodos.map((category) => ({
+          ...category,
+          todos: category.todos.map((todo) =>
+            todo.id === todoId ? { ...todo, isLocked: true } : todo
+          ),
+        }));
+        return updatedTodos;
+      });
+    });
+
+    socket.on("unlockElement", (todoId) => {
+      console.log("Received broadcast: unlockElement for todoId:", todoId);
+      setTodos((prevTodos) => {
+        const updatedTodos = prevTodos.map((category) => ({
+          ...category,
+          todos: category.todos.map((todo) =>
+            todo.id === todoId ? { ...todo, isLocked: false } : todo
+          ),
+        }));
+        return updatedTodos;
+      });
+    });
+
+    return () => {
+      socket.off("initializeLocks");
+      socket.off("lockElement");
+      socket.off("unlockElement");
+    };
   }, []);
 
   const loadTableData = async () => {
     try {
       const response = await axios.get(`${URL}database`);
       setTableData(response.data);
+      socket.emit("getLockedTodos");
     } catch (error) {
       console.error("Error loading data", error);
     }
@@ -58,10 +106,10 @@ function TaskList() {
       if (!categoriesMap.has(item.category_name)) {
         categoriesMap.set(item.category_name, {
           category: item.category_name,
-          tasks: [],
+          todos: [],
         });
       }
-      categoriesMap.get(item.category_name).tasks.push({
+      categoriesMap.get(item.category_name).todos.push({
         id: item.todo_id,
         name: item.todo_title,
         description: item.todo_description,
@@ -70,38 +118,35 @@ function TaskList() {
       });
     });
 
-    const mappedTasks = Array.from(categoriesMap.values());
-    setTasks(mappedTasks);
+    const mappedTodos = Array.from(categoriesMap.values());
+    setTodos(mappedTodos);
   }, [tableData]);
 
-  const toggleComplete = (taskId) => {
-    const taskElement = document.getElementById(taskId);
-    if (taskElement) {
-      if (taskElement.classList.contains("completed")) {
-        taskElement.classList.remove("completed");
+  const toggleComplete = (todoId) => {
+    const todoElement = document.getElementById(todoId);
+    if (todoElement) {
+      if (todoElement.classList.contains("completed")) {
+        todoElement.classList.remove("completed");
       } else {
-        taskElement.classList.add("completed");
+        todoElement.classList.add("completed");
       }
     }
 
-    const updatedTasks = tasks.map((category) => ({
+    const updatedTodos = todos.map((category) => ({
       ...category,
-      tasks: category.tasks.map((task) =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
+      todos: category.todos.map((todo) =>
+        todo.id === todoId ? { ...todo, completed: !todo.completed } : todo
       ),
     }));
 
-    setTasks(updatedTasks);
+    setTodos(updatedTodos);
   };
 
-  const editTask = (taskId, newName) => {
-    const updatedTasks = tasks.map((category) => ({
-      ...category,
-      tasks: category.tasks.map((task) =>
-        task.id === taskId ? { ...task, name: newName } : task
-      ),
-    }));
-    setTasks(updatedTasks);
+  const editTodo = (todoId) => {
+    socket.emit("editTodo", todoId);
+  };
+  const finishedEditTodo = (todoId) => {
+    socket.emit("unlockTodo", todoId);
   };
 
   const addCategory = async () => {
@@ -111,9 +156,11 @@ function TaskList() {
         return;
       }
       try {
-        const response = await axios.post(`${URL}category`, { category: newCategory });
+        const response = await axios.post(`${URL}category`, {
+          category: newCategory,
+        });
         if (response.status === 200) {
-          setTasks([...tasks, { category: newCategory, tasks: [] }]);
+          setTodos([...todos, { category: newCategory, todos: [] }]);
           setCategories([...categories, newCategory]);
           setNewCategory("");
           setShowCategoryModal(false);
@@ -126,76 +173,76 @@ function TaskList() {
     }
   };
 
-  const addTask = async () => {
-    const existingTask = tasks.find((cat) =>
-      cat.tasks.some((task) => task.name === newTask.name)
+  const addTodo = async () => {
+    const existingTodo = todos.find((cat) =>
+      cat.todos.some((todo) => todo.name === newTodo.name)
     );
 
-    if (existingTask) {
-      setTaskError("Task with the same name already exists.");
+    if (existingTodo) {
+      setTodoError("Todo with the same name already exists.");
       return;
     }
 
     if (
-      newTask.category &&
-      newTask.name &&
-      newTask.description &&
-      newTask.dueDate
+      newTodo.category &&
+      newTodo.name &&
+      newTodo.description &&
+      newTodo.dueDate
     ) {
-      if (newTask.name.length > 30) {
-        setTaskError("Task name exceeds 30 characters.");
+      if (newTodo.name.length > 30) {
+        setTodoError("Todo name exceeds 30 characters.");
         return;
       }
 
-      if (newTask.description.length > 200) {
-        setTaskError("Task description exceeds 200 characters.");
+      if (newTodo.description.length > 200) {
+        setTodoError("Todo description exceeds 200 characters.");
         return;
       }
 
       try {
         const response = await axios.post(`${URL}todo`, {
-          title: newTask.name,
-          description: newTask.description,
-          category: newTask.category,
-          dueDate: newTask.dueDate,
+          title: newTodo.name,
+          description: newTodo.description,
+          category: newTodo.category,
+          dueDate: newTodo.dueDate,
         });
         if (response.status === 200) {
-          const updatedTasks = tasks.map((category) => {
-            if (category.category === newTask.category) {
-              const newTaskItem = {
+          const updatedTodos = todos.map((category) => {
+            if (category.category === newTodo.category) {
+              const newTodoItem = {
                 id: response.data.insertId,
-                name: newTask.name,
-                description: newTask.description,
-                dueDate: newTask.dueDate,
+                name: newTodo.name,
+                description: newTodo.description,
+                dueDate: newTodo.dueDate,
                 completed: false,
               };
               return {
                 ...category,
-                tasks: [...category.tasks, newTaskItem],
+                todos: [...category.todos, newTodoItem],
               };
             }
             return category;
           });
-          setTasks(updatedTasks);
-          setNewTask({ category: "", name: "", description: "", dueDate: "" });
-          setShowTaskModal(false);
-          setTaskError("");
+          setTodos(updatedTodos);
+          setNewTodo({ category: "", name: "", description: "", dueDate: "" });
+          setShowTodoModal(false);
+          setTodoError("");
           socket.emit("refreshTableData");
         }
       } catch (error) {
-        console.error("Error adding task", error);
+        console.error("Error adding todo", error);
       }
     } else {
-      setTaskError("All fields are required.");
+      setTodoError("All fields are required.");
     }
   };
 
-  const filteredTasks = tasks.map((category) => ({
+  const filteredTodos = todos.map((category) => ({
     ...category,
-    tasks: category.tasks.filter((task) => {
+    todos: category.todos.filter((todo) => {
       if (filter === "all") return true;
-      if (filter === "completed") return task.completed;
-      if (filter === "pending") return !task.completed;
+      if (filter === "completed") return todo.completed;
+      if (filter === "pending") return !todo.completed;
       return true;
     }),
   }));
@@ -209,11 +256,11 @@ function TaskList() {
         >
           Add Category
         </button>
-        <button className="add-task" onClick={() => setShowTaskModal(true)}>
-          Add Task
+        <button className="add-todo" onClick={() => setShowTodoModal(true)}>
+          Add Todo
         </button>
         <select
-          className="task-filter"
+          className="todo-filter"
           onChange={(e) => setFilter(e.target.value)}
         >
           <option value="all">All</option>
@@ -244,17 +291,19 @@ function TaskList() {
         </>
       )}
 
-      {showTaskModal && (
+      {showTodoModal && (
         <>
           <div
             className="modal-overlay"
-            onClick={() => setShowTaskModal(false)}
+            onClick={() => setShowTodoModal(false)}
           />
           <div className="modal">
-            <h2>Add Task</h2>
+            <h2>Add Todo</h2>
             <select
-              value={newTask.category}
-              onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
+              value={newTodo.category}
+              onChange={(e) =>
+                setNewTodo({ ...newTodo, category: e.target.value })
+              }
             >
               <option value="" disabled>
                 Select Category
@@ -267,58 +316,58 @@ function TaskList() {
             </select>
             <input
               type="text"
-              placeholder="Task Name"
-              value={newTask.name}
-              onChange={(e) => setNewTask({ ...newTask, name: e.target.value })}
+              placeholder="Todo Name"
+              value={newTodo.name}
+              onChange={(e) => setNewTodo({ ...newTodo, name: e.target.value })}
               maxLength="30"
             />
             <textarea
               placeholder="Description"
-              value={newTask.description}
+              value={newTodo.description}
               onChange={(e) =>
-                setNewTask({ ...newTask, description: e.target.value })
+                setNewTodo({ ...newTodo, description: e.target.value })
               }
               maxLength="200"
             />
             <input
               type="date"
-              value={newTask.dueDate}
+              value={newTodo.dueDate}
               onChange={(e) =>
-                setNewTask({ ...newTask, dueDate: e.target.value })
+                setNewTodo({ ...newTodo, dueDate: e.target.value })
               }
             />
-            {taskError && <div className="error">{taskError}</div>}
-            <button onClick={addTask}>Add Task</button>
-            <button onClick={() => setShowTaskModal(false)}>Cancel</button>
+            {todoError && <div className="error">{todoError}</div>}
+            <button onClick={addTodo}>Add Todo</button>
+            <button onClick={() => setShowTodoModal(false)}>Cancel</button>
           </div>
         </>
       )}
 
       <h1>Todos</h1>
-      <div className="task-list">
-        {filteredTasks.map(
+      <div className="todo-list">
+        {filteredTodos.map(
           (category, index) =>
-            category.tasks.length > 0 && (
-              <div key={index} className="task-category">
+            category.todos.length > 0 && (
+              <div key={index} className="todo-category">
                 <h2>{category.category}</h2>
                 <ul>
-                  {category.tasks.map((task) => {
-                    const isOverdue = new Date(task.dueDate) < new Date();
+                  {category.todos.map((todo) => {
+                    const isOverdue = new Date(todo.dueDate) < new Date();
                     return (
                       <li
-                        key={task.id}
-                        id={task.id}
-                        className={`task-item ${
-                          task.completed ? "completed" : ""
-                        }`}
+                        key={todo.id}
+                        id={todo.id}
+                        className={`todo-item ${
+                          todo.isLocked ? "todo-item-locked" : ""
+                        } ${todo.completed ? "completed" : ""}`}
                       >
                         {/* Todo item: checkmark, title, description and due date */}
-                        <div className="task-details">
-                          <label className="task-left check-container">
+                        <div className="todo-details">
+                          <label className="todo-left check-container">
                             <input
                               type="checkbox"
-                              checked={task.completed}
-                              onChange={() => toggleComplete(task.id)}
+                              checked={todo.completed}
+                              onChange={() => toggleComplete(todo.id)}
                             />
                             <svg viewBox="0 0 64 64" height="2em" width="2em">
                               <path
@@ -329,38 +378,44 @@ function TaskList() {
                             </svg>
                           </label>
                           {/* Title and description */}
-                          <div className="task-title-description">
+                          <div className="todo-title-description">
                             {/* Title */}
                             <React.Fragment>
                               <EditText
-                                name={task.id + "-title"}
-                                defaultValue={task.name}
-                                inputClassName="task-title-edit"
-                                className="task-title"
+                                name={todo.id + "-title"}
+                                defaultValue={todo.name}
+                                inputClassName="todo-title-edit"
+                                className="todo-title"
+                                onEditMode={() => editTodo(todo.id)}
+                                onBlur={() => finishedEditTodo(todo.id)}
+                                readonly={todo.isLocked}
                               ></EditText>
                             </React.Fragment>
                             {/* Description */}
-                            <div className="task-description">
+                            <div className="todo-description">
                               <React.Fragment>
                                 <EditTextarea
-                                  name={task.id + "-description"}
-                                  defaultValue={task.description}
+                                  name={todo.id + "-description"}
+                                  defaultValue={todo.description}
                                   rows={3}
-                                  inputClassName="task-description-edit"
-                                  className="task-description"
+                                  inputClassName="todo-description-edit"
+                                  className="todo-description"
+                                  onEditMode={() => editTodo(todo.id)}
+                                  onBlur={() => finishedEditTodo(todo.id)}
+                                  readonly={todo.isLocked}
                                 ></EditTextarea>
                               </React.Fragment>
                             </div>
                           </div>
                           {/* Due date */}
-                          <div className="task-text-duo-date">
-                            <label className="task-title">Due:</label>
+                          <div className="todo-text-duo-date">
+                            <label className="todo-title">Due:</label>
                             <div
-                              className={`task-due-date ${
+                              className={`todo-due-date ${
                                 isOverdue ? "overdue" : "ontime"
                               }`}
                             >
-                              {new Date(task.dueDate).toLocaleDateString(
+                              {new Date(todo.dueDate).toLocaleDateString(
                                 "de-DE",
                                 {
                                   year: "numeric",
@@ -383,4 +438,4 @@ function TaskList() {
   );
 }
 
-export default TaskList;
+export default TodoList;

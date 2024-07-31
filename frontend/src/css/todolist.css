@@ -32,27 +32,27 @@ h1 {
   padding-bottom: 10px;
 }
 
-.task-list {
+.todo-list {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.task-category {
+.todo-category {
   background-color: #ffffff;
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
 }
 
-.task-category h2 {
+.todo-category h2 {
   margin-top: 0;
   font-size: 22px;
   color: #333;
   margin-bottom: 15px;
 }
 
-.task-item {
+.todo-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -63,17 +63,26 @@ h1 {
   margin-bottom: 10px;
   transition: background-color 0.3s ease;
 }
-
-.task-item.completed {
+.todo-item.completed {
   text-decoration: line-through;
   color: grey;
 }
 
-.task-item:hover {
+.todo-item:hover {
   background-color: #f1f1f1;
 }
 
-.task-left {
+.todo-item-locked {
+  background-color: #f8d7da; 
+  border: 2px solid #f5c6cb; 
+}
+.todo-item-locked:hover {
+  background-color: #f8d7da; 
+  border: 2px solid #f5c6cb; 
+}
+
+
+.todo-left {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -109,18 +118,18 @@ input[type="checkbox"] {
   stroke: rgb(5, 219, 19);
 }
 
-.task-name {
+.todo-name {
   font-size: 16px;
   color: #333;
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
-.task-item.completed .task-name {
+.todo-item.completed .todo-name {
   color: #888;
 }
 
-.task-details {
+.todo-details {
   display: flex;
   align-items: center;
   gap: 20px;
@@ -129,19 +138,19 @@ input[type="checkbox"] {
   box-sizing: border-box;
 }
 
-.task-due-date {
+.todo-due-date {
   font-size: 20px;
   margin: 10px;
   padding: 7px;
   border-radius: 8px;
 }
 
-.task-title {
+.todo-title {
   color: #000000;
   font-size: 22px;
 }
 
-.task-title-edit {
+.todo-title-edit {
   padding: 12px 20px;
   box-sizing: border-box;
   border: 2px solid #ccc;
@@ -153,25 +162,25 @@ input[type="checkbox"] {
   scrollbar-width: none; /* Firefox */
 }
 
-.task {
+.todo {
   display: flex;
   flex-wrap: wrap;
 }
 
-.task-due-date.overdue {
+.todo-due-date.overdue {
   background-color: rgba(252, 28, 8, 0.221);
 }
 
-.task-due-date.ontime {
+.todo-due-date.ontime {
   background-color: rgba(5, 219, 19, 0.221);
 }
 
-.task-text-duo-date {
+.todo-text-duo-date {
   display: flex;
   flex-direction: column;
 }
 
-.task-description {
+.todo-description {
   border-radius: 4px;
   padding: 2px 6px;
   color: #404040;
@@ -182,7 +191,8 @@ input[type="checkbox"] {
   scrollbar-width: none; /* Firefox */
 }
 
-.task-description-edit {
+.todo-description-edit {
+  font-family: "Arial", sans-serif;
   width: 100%;
   height: 150px;
   padding: 12px 20px;
@@ -211,7 +221,7 @@ button:hover {
   background-color: #00a6fb;
 }
 
-.add-task,
+.add-todo,
 .add-category {
   color: white;
   padding: 10px 20px;
@@ -222,7 +232,7 @@ button:hover {
   transition: background-color 0.3s ease;
 }
 
-.task-filter {
+.todo-filter {
   padding: 10px 20px;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -232,7 +242,7 @@ button:hover {
   transition: border-color 0.3s ease;
 }
 
-.task-filter:hover {
+.todo-filter:hover {
   border-color: #bbb;
 }
 
@@ -311,16 +321,16 @@ input.error {
   ul {
     padding: 0%;
   }
-  .task-details {
+  .todo-details {
     flex-direction: column;
     align-items: center;
     gap: 5px;
   }
-  .task-text-duo-date {
+  .todo-text-duo-date {
     margin-top: 0px;
   }
 
-  .task-text-duo-date {
+  .todo-text-duo-date {
     display: flex;
     flex-direction: column;
   }
@@ -332,12 +342,12 @@ input.error {
   margin-bottom: 15px;
 }
 
-.task-category ul {
+.todo-category ul {
   list-style-type: none;
   padding: 0;
   margin: 0;
 }
 
-.task-category li {
+.todo-category li {
   margin-bottom: 10px;
 }

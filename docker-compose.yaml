@@ -1,7 +1,6 @@
 version: '3.3'
 
 services:
-
   server:
     build: server
     ports:
@@ -12,15 +11,17 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_HOSTNAME: ${MYSQL_HOSTNAME}
-      PORT: ${SERVER_PORT}
-      HOST: ${SERVER_HOST}
+      PORT: 8080
+      HOST: server
       FRONTEND_URL: ${FRONTEND_URL}
     links:
       - todolistdb
     depends_on:
       - todolistdb
-
-  socket-server:
+    networks:
+      - loadbalancing
+    
+  socket-server-1:
     build: socket-server
     ports:
       - "9090:9090"
@@ -31,8 +32,28 @@ services:
       FRONTEND_URL: ${FRONTEND_URL}
     links:
       - todolistdb
+      - redis
     depends_on:
       - todolistdb
+    networks:
+      - loadbalancing
+
+  socket-server-2:
+    build: socket-server
+    ports:
+      - "9091:9090"
+    restart: always
+    environment:
+      PORT: 9090
+      HOST: socket-server-2
+      FRONTEND_URL: ${FRONTEND_URL}
+    links:
+      - todolistdb
+      - redis
+    depends_on:
+      - todolistdb
+    networks:
+      - loadbalancing
 
   todolistdb:
     build: db
@@ -42,6 +63,8 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    networks:
+      - loadbalancing
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -50,15 +73,21 @@ services:
       - 8085:80
     environment:
       PMA_HOST: todolistdb
+    networks:
+      - loadbalancing
 
   frontend:
     build:
       context: ./frontend
       args:
-        - NGINX_URL=${NGINX_URL}
-        - FRONTEND_PORT=${FRONTEND_PORT}
+        - VITE_NGINX_URL=${VITE_NGINX_URL}
+        - VITE_FRONTEND_PORT=${VITE_FRONTEND_PORT}
     ports:
       - "3000:3000"
+    environment:
+      - VITE_NGINX_URL=${VITE_NGINX_URL}
+    networks:
+      - loadbalancing
 
   nginx:
     image: nginx:latest
@@ -66,8 +95,21 @@ services:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - loadbalancing
     depends_on:
       - frontend
       - server
-      - socket-server
+      - socket-server-1
+      - socket-server-2
     restart: always
+
+  redis:
+    image: redis:alpine
+    expose:
+      - "6379"
+    networks:
+      - loadbalancing
+
+networks:
+  loadbalancing:
