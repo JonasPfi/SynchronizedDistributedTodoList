@@ -1,7 +1,7 @@
 version: '3.3'
 
 services:
-  server:
+  server-1:
     build: server
     ports:
       - "8080:8080"
@@ -12,7 +12,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_HOSTNAME: ${MYSQL_HOSTNAME}
       PORT: 8080
-      HOST: server
+      HOST: server-1
       FRONTEND_URL: ${FRONTEND_URL}
     links:
       - todolistdb
@@ -20,7 +20,27 @@ services:
       - todolistdb
     networks:
       - loadbalancing
-    
+
+  server-2:
+    build: server
+    ports:
+      - "8081:8080"
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_HOSTNAME: ${MYSQL_HOSTNAME}
+      PORT: 8080
+      HOST: server-2
+      FRONTEND_URL: ${FRONTEND_URL}
+    links:
+      - todolistdb
+    depends_on:
+      - todolistdb
+    networks:
+      - loadbalancing
+
   socket-server-1:
     build: socket-server
     ports:
@@ -99,7 +119,8 @@ services:
       - loadbalancing
     depends_on:
       - frontend
-      - server
+      - server-1
+      - server-2
       - socket-server-1
       - socket-server-2
     restart: always
