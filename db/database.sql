@@ -77,7 +77,8 @@ CREATE TABLE `logging` (
   `logging_id` int(11) NOT NULL,
   `socket_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `is_logged_in` tinyint(1) NOT NULL DEFAULT 0
+  `is_logged_in` tinyint(1) NOT NULL DEFAULT 0,
+  `text` varchar(200) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 -- --------------------------------------------------------
