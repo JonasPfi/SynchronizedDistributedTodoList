@@ -75,8 +75,8 @@ INSERT INTO `todo` (`todo_id`, `todo_title`, `todo_description`, `todo_due_date`
 
 CREATE TABLE `logging` (
   `logging_id` int(11) NOT NULL,
-  `socket_id` varchar(30) NOT NULL,
-  `user_id` varchar(30) NOT NULL,
+  `socket_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
   `is_logged_in` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
