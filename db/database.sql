@@ -67,6 +67,19 @@ INSERT INTO `todo` (`todo_id`, `todo_title`, `todo_description`, `todo_due_date`
 (6, 'Water the flowers', 'Water the flowers in the morning or evening to minimize evaporation and ensure they get enough moisture.', '2024-07-20', 0, 2),
 (7, 'Clean garden furniture', 'Wipe down garden furniture, remove dirt and cobwebs, and make sure they are ready for use.', '2024-07-27', 1, 2);
 
+-- --------------------------------------------------------
+--
+-- Tabellenstruktur für Tabelle `logging`
+--
+
+CREATE TABLE `logging` (
+  `logging_id` int(11) NOT NULL,
+  `socket_id` varchar(30) NOT NULL,
+  `user_id` varchar(30) NOT NULL,
+  `is_logged_in` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+-- --------------------------------------------------------
 --
 -- Indizes der exportierten Tabellen
 --
@@ -84,6 +97,12 @@ ALTER TABLE `todo`
   ADD PRIMARY KEY (`todo_id`);
 
 --
+-- Indizes für die Tabelle `todo`
+--
+ALTER TABLE `logging`
+  ADD PRIMARY KEY (`logging_id`);
+
+--
 -- AUTO_INCREMENT für exportierte Tabellen
 --
 
@@ -98,6 +117,13 @@ ALTER TABLE `category`
 --
 ALTER TABLE `todo`
   MODIFY `todo_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+COMMIT;
+
+--
+-- AUTO_INCREMENT für Tabelle `logging`
+--
+ALTER TABLE `logging`
+  MODIFY `logging_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
