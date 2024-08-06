@@ -70,14 +70,14 @@ INSERT INTO `todo` (`todo_id`, `todo_title`, `todo_description`, `todo_due_date`
 -- --------------------------------------------------------
 
 --
--- Table structure for table `logging`
+-- Table structure for table `locks`
 --
 
-CREATE TABLE `logging` (
-  `logging_id` int(11) NOT NULL,
+CREATE TABLE `lock` (
+  `lock_id` int(11) NOT NULL,
   `socket_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `is_logged_in` tinyint(1) NOT NULL DEFAULT 0,
+  `is_lock` tinyint(1) NOT NULL DEFAULT 0,
   `text` varchar(200) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
@@ -101,8 +101,8 @@ ALTER TABLE `todo`
 --
 -- Indexes for table `logging`
 --
-ALTER TABLE `logging`
-  ADD PRIMARY KEY (`logging_id`);
+ALTER TABLE `lock`
+  ADD PRIMARY KEY (`lock_id`);
 
 --
 -- AUTO_INCREMENT for exported tables
@@ -123,8 +123,8 @@ ALTER TABLE `todo`
 --
 -- AUTO_INCREMENT for table `logging`
 --
-ALTER TABLE `logging`
-  MODIFY `logging_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+ALTER TABLE `lock`
+  MODIFY `lock_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 COMMIT;
 
