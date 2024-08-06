@@ -54,11 +54,6 @@ socket.on('connect', () => {
     console.log('Node.js server connected to Socket.io server');
 });
 
-socket.on('lockedTodos', (lockedTodos) => {
-    console.log('Received locked todos:', lockedTodos);
-    // Handle locked todos event
-});
-
 socket.on('lockElement', (todoId) => {
     console.log('Received broadcast: lockElement for todoId:', todoId);
     // Handle lock element event
