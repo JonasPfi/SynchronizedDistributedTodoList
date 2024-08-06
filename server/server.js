@@ -43,8 +43,8 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Socket.io Client connection
-const socket = ioClient('http://localhost:9090', {
+// Create Socket.io client connection
+const socket = ioClient('http://socket-server-1:9090', {
     path: '/socket.io/',
     transports: ['websocket'],
     withCredentials: true
@@ -54,11 +54,23 @@ socket.on('connect', () => {
     console.log('Node.js server connected to Socket.io server');
 });
 
-socket.on('message', (data) => {
-    console.log('Message from Socket.io server:', data);
+socket.on('lockedTodos', (lockedTodos) => {
+    console.log('Received locked todos:', lockedTodos);
+    // Handle locked todos event
 });
 
-socket.emit('message', { hello: 'world' });
+socket.on('lockElement', (todoId) => {
+    console.log('Received broadcast: lockElement for todoId:', todoId);
+    // Handle lock element event
+});
+
+socket.on('unlockElement', (todoId) => {
+    console.log('Received broadcast: unlockElement for todoId:', todoId);
+    // Handle unlock element event
+});
+
+// Example emit to get locked todos
+socket.emit('getLockedTodos');
 
 // ###################### DATABASE PART ######################
 //GET path for table data
