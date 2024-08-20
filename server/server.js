@@ -64,9 +64,6 @@ socket.on('unlockElement', (todoId) => {
     // Handle unlock element event
 });
 
-// Example emit to get locked todos
-socket.emit('getLockedTodos');
-
 // ###################### DATABASE PART ######################
 //GET path for table data
 app.get('/database', (req, res) => {

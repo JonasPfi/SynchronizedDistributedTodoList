@@ -67,19 +67,6 @@ INSERT INTO `todo` (`todo_id`, `todo_title`, `todo_description`, `todo_due_date`
 (6, 'Water the flowers', 'Water the flowers in the morning or evening to minimize evaporation and ensure they get enough moisture.', '2024-07-20', 0, 2),
 (7, 'Clean garden furniture', 'Wipe down garden furniture, remove dirt and cobwebs, and make sure they are ready for use.', '2024-07-27', 1, 2);
 
--- --------------------------------------------------------
-
---
--- Table structure for table `locks`
---
-
-CREATE TABLE `lock` (
-  `lock_id` int(11) NOT NULL,
-  `socket_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `is_lock` tinyint(1) NOT NULL DEFAULT 0,
-  `text` varchar(200) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 -- --------------------------------------------------------
 --
@@ -99,12 +86,6 @@ ALTER TABLE `todo`
   ADD PRIMARY KEY (`todo_id`);
 
 --
--- Indexes for table `logging`
---
-ALTER TABLE `lock`
-  ADD PRIMARY KEY (`lock_id`);
-
---
 -- AUTO_INCREMENT for exported tables
 --
 
@@ -119,12 +100,6 @@ ALTER TABLE `category`
 --
 ALTER TABLE `todo`
   MODIFY `todo_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-
---
--- AUTO_INCREMENT for table `logging`
---
-ALTER TABLE `lock`
-  MODIFY `lock_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 COMMIT;
 
