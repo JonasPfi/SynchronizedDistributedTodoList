@@ -54,16 +54,6 @@ socket.on('connect', () => {
     console.log('Node.js server connected to Socket.io server');
 });
 
-socket.on('lockElement', (todoId) => {
-    console.log('Received broadcast: lockElement for todoId:', todoId);
-    // Handle lock element event
-});
-
-socket.on('unlockElement', (todoId) => {
-    console.log('Received broadcast: unlockElement for todoId:', todoId);
-    // Handle unlock element event
-});
-
 // ###################### DATABASE PART ######################
 //GET path for table data
 app.get('/database', (req, res) => {
