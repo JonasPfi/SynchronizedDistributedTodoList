@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: todolistdb
--- Erstellungszeit: 16. Jul 2024 um 20:36
--- Server-Version: 11.4.2-MariaDB-ubu2404
--- PHP-Version: 8.2.8
+-- Created on: Jul 16, 2024 at 20:36
+-- Server version: 11.4.2-MariaDB-ubu2404
+-- PHP version: 8.2.8
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Datenbank: `ToDoListDatabase`
+-- Database: `ToDoListDatabase`
 --
 
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `category`
+-- Table structure for table `category`
 --
 
 CREATE TABLE `category` (
@@ -33,7 +33,7 @@ CREATE TABLE `category` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 --
--- Daten für Tabelle `category`
+-- Data for table `category`
 --
 
 INSERT INTO `category` (`category_id`, `category_name`) VALUES
@@ -43,7 +43,7 @@ INSERT INTO `category` (`category_id`, `category_name`) VALUES
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `todo`
+-- Table structure for table `todo`
 --
 
 CREATE TABLE `todo` (
@@ -56,7 +56,7 @@ CREATE TABLE `todo` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 --
--- Daten für Tabelle `todo`
+-- Data for table `todo`
 --
 
 INSERT INTO `todo` (`todo_id`, `todo_title`, `todo_description`, `todo_due_date`, `todo_finished`, `category_id`) VALUES
@@ -67,37 +67,40 @@ INSERT INTO `todo` (`todo_id`, `todo_title`, `todo_description`, `todo_due_date`
 (6, 'Water the flowers', 'Water the flowers in the morning or evening to minimize evaporation and ensure they get enough moisture.', '2024-07-20', 0, 2),
 (7, 'Clean garden furniture', 'Wipe down garden furniture, remove dirt and cobwebs, and make sure they are ready for use.', '2024-07-27', 1, 2);
 
+
+-- --------------------------------------------------------
 --
--- Indizes der exportierten Tabellen
+-- Indexes for exported tables
 --
 
 --
--- Indizes für die Tabelle `category`
+-- Indexes for table `category`
 --
 ALTER TABLE `category`
   ADD PRIMARY KEY (`category_id`);
 
 --
--- Indizes für die Tabelle `todo`
+-- Indexes for table `todo`
 --
 ALTER TABLE `todo`
   ADD PRIMARY KEY (`todo_id`);
 
 --
--- AUTO_INCREMENT für exportierte Tabellen
+-- AUTO_INCREMENT for exported tables
 --
 
 --
--- AUTO_INCREMENT für Tabelle `category`
+-- AUTO_INCREMENT for table `category`
 --
 ALTER TABLE `category`
   MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- AUTO_INCREMENT für Tabelle `todo`
+-- AUTO_INCREMENT for table `todo`
 --
 ALTER TABLE `todo`
   MODIFY `todo_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

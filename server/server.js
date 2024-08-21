@@ -2,9 +2,9 @@
 
 const express = require('express');
 const cors = require('cors');
-
-// Database
 const mysql = require('mysql');
+const ioClient = require('socket.io-client'); // Added for Socket.io client
+
 // Database connection info - used from environment variables
 var dbInfo = {
     connectionLimit: 10,
@@ -19,15 +19,12 @@ console.log("Connecting to database...");
 
 // Check the connection
 connection.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
-    if (error) throw error; // <- this will throw the error and exit normally
-    // check the solution - should be 2
+    if (error) throw error;
     if (results[0].solution == 2) {
-        // everything is fine with the database
         console.log("Database connected and works");
     } else {
-        // connection is not fine - please check
         console.error("There is something wrong with your database connection! Please check");
-        process.exit(5); // <- exit application with error code e.g. 5
+        process.exit(5);
     }
 });
 
@@ -46,6 +43,16 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// Create Socket.io client connection
+const socket = ioClient('http://socket-server-1:9090', {
+    path: '/socket.io/',
+    transports: ['websocket'],
+    withCredentials: true
+});
+
+socket.on('connect', () => {
+    console.log('Node.js server connected to Socket.io server');
+});
 
 // ###################### DATABASE PART ######################
 //GET path for table data
@@ -169,7 +176,6 @@ app.post('/category', (req, res) => {
 });
 // ###################### DATABASE PART END ######################
 
-
 // All requests to /static/... will be redirected to static files in the folder "public"
 // call it with: http://localhost:8080/static
 app.use('/static', express.static('public'))
@@ -182,12 +188,3 @@ console.log(`Running on http://${HOST}:${PORT}`);
 const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
-
-
-
-
-
-
-
-
-
