@@ -112,6 +112,18 @@ app.delete('/todotable/:id', (req, res) => {
         }
     });
 });
+// UPDATE path for todos
+app.put('/todo', (req, res) => {
+    if (typeof req.body !== "undefined" && typeof req.body.title !== "undefined" && typeof req.body.description !== "undefined" && typeof req.body.userId !== "undefined") {
+        let title = req.body.title;
+        let description = req.body.description;
+        let userId = req.body.userId;
+        // NO IMPLEMENTATION
+    } else {
+        console.error("Client send no correct data!")
+        res.status(400).json({ message: 'This function requires a body with "title", "description" and "userId"' });
+    }
+});
 
 // POST path for adding a new todo
 app.post('/todo', (req, res) => {

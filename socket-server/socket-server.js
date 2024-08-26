@@ -86,6 +86,7 @@ async function getLockedTodosFromRedis() {
 // Socket.IO events
 io.on("connection", (socket) => {
     console.log(`A user connected with ID: ${socket.id}`);
+    socket.emit('userId', socket.id);
 
     socket.on("disconnect", async () => {
         console.log(`A user disconnected with ID: ${socket.id}`);

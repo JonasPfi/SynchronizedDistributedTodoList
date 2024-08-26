@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { EditText, EditTextarea } from "react-edit-text";
+import EditableText from "./components/EditableText";
+import EditableTextarea from "./components/EditableTextarea";
 import "./css/todolist.css";
 import axios from "axios";
 import socketIO from "socket.io-client";
@@ -31,6 +32,7 @@ function TodoList() {
   const [todoError, setTodoError] = useState("");
   const [categoryError, setCategoryError] = useState("");
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -94,12 +96,18 @@ function TodoList() {
       ]);
     });
 
+    socket.on("userId", (id) => {
+      console.log("User ID:", id);
+      setUserId(id);
+    });
+
     return () => {
       socket.off("initializeLocks");
       socket.off("lockElement");
       socket.off("unlockElement");
       socket.off("addLocalTodo");
       socket.off("addLocalCategory");
+      socket.off("userId");
     };
   }, []);
 
@@ -408,7 +416,6 @@ function TodoList() {
                           todo.isLocked ? "todo-item-locked" : ""
                         } ${todo.completed ? "completed" : ""}`}
                       >
-                        {/* Todo item: checkmark, title, description and due date */}
                         <div className="todo-details">
                           <label className="todo-left check-container">
                             <input
@@ -424,45 +431,30 @@ function TodoList() {
                               ></path>
                             </svg>
                           </label>
-                          {/* Title and description */}
-                          <div className="todo-title-description">
-                            {/* Title */}
-                            <React.Fragment>
-                              <EditText
-                                name={todo.id + "-title"}
-                                defaultValue={todo.name}
-                                inputClassName="todo-title-edit"
-                                className="todo-title"
-                                onEditMode={() =>
-                                  editTodo(todo.id, "title", todo.name)
-                                }
-                                onBlur={() => finishedEditTodo(todo.id)}
-                                readonly={todo.isLocked}
-                              ></EditText>
-                            </React.Fragment>
-                            {/* Description */}
+                          <div className="todo-title">
+                            <EditableText
+                              value={todo.name}
+                              onSave={() => finishedEditTodo(todo.id)}
+                              onEditMode={() =>
+                                editTodo(todo.id, "title", todo.title)
+                              }
+                              readonly={todo.isLocked}
+                            />
                             <div className="todo-description">
-                              <React.Fragment>
-                                <EditTextarea
-                                  name={todo.id + "-description"}
-                                  defaultValue={todo.description}
-                                  rows={3}
-                                  inputClassName="todo-description-edit"
-                                  className="todo-description"
-                                  onEditMode={() =>
-                                    editTodo(
-                                      todo.id,
-                                      "description",
-                                      todo.description
-                                    )
-                                  }
-                                  onBlur={() => finishedEditTodo(todo.id)}
-                                  readonly={todo.isLocked}
-                                ></EditTextarea>
-                              </React.Fragment>
+                              <EditableTextarea
+                                value={todo.description}
+                                onSave={() => finishedEditTodo(todo.id)}
+                                onEditMode={() =>
+                                  editTodo(
+                                    todo.id,
+                                    "description",
+                                    todo.description
+                                  )
+                                }
+                                readonly={todo.isLocked}
+                              />
                             </div>
                           </div>
-                          {/* Due date */}
                           <div className="todo-text-duo-date">
                             <label className="todo-title">Due:</label>
                             <div
