@@ -50,43 +50,63 @@ const io = socketIO(expressServer, {
     credentials: true
 });
 
-// Object to store which user has locked which todo
-const lockedTodos = new Map();
+// Function to lock a todo
+async function lockTodoInRedis(todoId, userId) {
+    await pubClient.hset('lockedTodos', todoId, userId);
+}
 
+// Function to unlock a todo
+async function unlockTodoInRedis(todoId, userId) {
+    const currentUserId = await pubClient.hget('lockedTodos', todoId);
+    if (currentUserId === userId) {
+        await pubClient.hdel('lockedTodos', todoId);
+        return true;
+    }
+    return false;
+}
+
+// Function to get all locked todos
+async function getLockedTodosFromRedis() {
+    const lockedTodos = await pubClient.hgetall('lockedTodos');
+    return Object.keys(lockedTodos);
+}
+
+// Socket.IO events
 io.on("connection", (socket) => {
     console.log(`A user connected with ID: ${socket.id}`);
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
         console.log(`A user disconnected with ID: ${socket.id}`);
-        // Remove all locks held by this user when they disconnect
-        lockedTodos.forEach((userId, todoId) => {
+        // Unlock all todos locked by this user
+        const lockedTodos = await pubClient.hgetall('lockedTodos');
+        for (const [todoId, userId] of Object.entries(lockedTodos)) {
             if (userId === socket.id) {
                 console.log(`User ${socket.id} released lock on todo ${todoId}`);
-                lockedTodos.delete(todoId);
+                await unlockTodoInRedis(todoId, socket.id);
                 socket.broadcast.emit('unlockElement', todoId);
             }
-        });
+        }
     });
 
-    socket.on("getLockedTodos", () => {
+    socket.on("getLockedTodos", async () => {
         console.log(`User ${socket.id} requested locked todos`);
-        socket.emit('lockedTodos', Array.from(lockedTodos.keys()));
+        const lockedTodos = await getLockedTodosFromRedis();
+        socket.emit('lockedTodos', lockedTodos);
     });
 
-    socket.on("editTodo", (todoId) => {
+    socket.on("editTodo", async (todoId) => {
         console.log(`User ${socket.id} is locking todo ${todoId}`);
-        // Save the lock
-        lockedTodos.set(todoId, socket.id);
+        // Save the lock in Redis
+        await lockTodoInRedis(todoId, socket.id);
         // Notify other clients
         socket.broadcast.emit('lockElement', todoId);
     });
 
-    socket.on("unlockTodo", (todoId) => {
+    socket.on("unlockTodo", async (todoId) => {
         console.log(`User ${socket.id} is unlocking todo ${todoId}`);
-        // Check if the current user has locked this todo
-        if (lockedTodos.get(todoId) === socket.id) {
-            // Remove the lock
-            lockedTodos.delete(todoId);
+        // Attempt to unlock the todo
+        const unlocked = await unlockTodoInRedis(todoId, socket.id);
+        if (unlocked) {
             // Notify other clients
             socket.broadcast.emit('unlockElement', todoId);
         } else {
