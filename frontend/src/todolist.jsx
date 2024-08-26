@@ -8,7 +8,7 @@ const URL = import.meta.env.VITE_NGINX_URL
   ? import.meta.env.VITE_NGINX_URL
   : "http://localhost/";
 
-const socket = socketIO({
+const socket = socketIO(URL, {
   path: "/socket.io/",
   transports: ["websocket"],
   withCredentials: true,
@@ -29,11 +29,17 @@ function TodoList() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showTodoModal, setShowTodoModal] = useState(false);
   const [todoError, setTodoError] = useState("");
-  const [categoryError, setCategoryError] = useState(""); // New state for category error
+  const [categoryError, setCategoryError] = useState("");
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
-    loadTableData();
-    loadCategories();
+    const loadData = async () => {
+      await loadTableData();
+      await loadCategories();
+      setDataLoaded(true);
+    };
+
+    loadData();
 
     socket.on("lockedTodos", (lockedTodos) => {
       console.log("Received locked todos:", lockedTodos);
@@ -74,10 +80,16 @@ function TodoList() {
       });
     });
 
+    socket.on("addLocalTodo", (todoId, todo) => {
+      console.log("Received broadcast: Add local todo: ", todoId, todo);
+      addTodoLocally(todoId, todo);
+    });
+
     return () => {
       socket.off("initializeLocks");
       socket.off("lockElement");
       socket.off("unlockElement");
+      socket.off("addLocalTodo");
     };
   }, []);
 
@@ -101,37 +113,30 @@ function TodoList() {
   };
 
   useEffect(() => {
-    const categoriesMap = new Map();
-    tableData.forEach((item) => {
-      if (!categoriesMap.has(item.category_name)) {
-        categoriesMap.set(item.category_name, {
-          category: item.category_name,
-          todos: [],
+    if (dataLoaded) {
+      const categoriesMap = new Map();
+      tableData.forEach((item) => {
+        if (!categoriesMap.has(item.category_name)) {
+          categoriesMap.set(item.category_name, {
+            category: item.category_name,
+            todos: [],
+          });
+        }
+        categoriesMap.get(item.category_name).todos.push({
+          id: item.todo_id,
+          name: item.todo_title,
+          description: item.todo_description,
+          dueDate: item.todo_due_date,
+          completed: item.todo_finished === 1,
         });
-      }
-      categoriesMap.get(item.category_name).todos.push({
-        id: item.todo_id,
-        name: item.todo_title,
-        description: item.todo_description,
-        dueDate: item.todo_due_date,
-        completed: item.todo_finished === 1,
       });
-    });
 
-    const mappedTodos = Array.from(categoriesMap.values());
-    setTodos(mappedTodos);
-  }, [tableData]);
+      const mappedTodos = Array.from(categoriesMap.values());
+      setTodos(mappedTodos);
+    }
+  }, [dataLoaded, tableData]);
 
   const toggleComplete = (todoId) => {
-    const todoElement = document.getElementById(todoId);
-    if (todoElement) {
-      if (todoElement.classList.contains("completed")) {
-        todoElement.classList.remove("completed");
-      } else {
-        todoElement.classList.add("completed");
-      }
-    }
-
     const updatedTodos = todos.map((category) => ({
       ...category,
       todos: category.todos.map((todo) =>
@@ -145,6 +150,7 @@ function TodoList() {
   const editTodo = (todoId, field, content) => {
     socket.emit("editTodo", todoId, field, content);
   };
+
   const finishedEditTodo = (todoId) => {
     socket.emit("unlockTodo", todoId);
   };
@@ -171,6 +177,46 @@ function TodoList() {
         console.error("Error adding category", error);
       }
     }
+  };
+
+  const postTodoToDB = async (todo) => {
+    try {
+      const response = await axios.post(`${URL}todo`, {
+        title: todo.name,
+        description: todo.description,
+        category: todo.category,
+        dueDate: todo.dueDate,
+      });
+
+      if (response.status === 200) {
+        return response.data.insertId;
+      }
+    } catch (error) {
+      console.error("Error adding todo", error);
+      throw new Error("Failed to add todo to the database.");
+    }
+  };
+
+  const addTodoLocally = (newTodoId, newTodo) => {
+    setTodos((prevTodos) => {
+      const updatedTodos = prevTodos.map((category) => {
+        if (category.category === newTodo.category) {
+          const newTodoItem = {
+            id: newTodoId,
+            name: newTodo.name,
+            description: newTodo.description,
+            dueDate: newTodo.dueDate,
+            completed: false,
+          };
+          return {
+            ...category,
+            todos: [...category.todos, newTodoItem],
+          };
+        }
+        return category;
+      });
+      return updatedTodos;
+    });
   };
 
   const addTodo = async () => {
@@ -200,37 +246,14 @@ function TodoList() {
       }
 
       try {
-        const response = await axios.post(`${URL}todo`, {
-          title: newTodo.name,
-          description: newTodo.description,
-          category: newTodo.category,
-          dueDate: newTodo.dueDate,
-        });
-        if (response.status === 200) {
-          const updatedTodos = todos.map((category) => {
-            if (category.category === newTodo.category) {
-              const newTodoItem = {
-                id: response.data.insertId,
-                name: newTodo.name,
-                description: newTodo.description,
-                dueDate: newTodo.dueDate,
-                completed: false,
-              };
-              return {
-                ...category,
-                todos: [...category.todos, newTodoItem],
-              };
-            }
-            return category;
-          });
-          setTodos(updatedTodos);
-          setNewTodo({ category: "", name: "", description: "", dueDate: "" });
-          setShowTodoModal(false);
-          setTodoError("");
-          socket.emit("refreshTableData");
-        }
+        const newTodoId = await postTodoToDB(newTodo);
+        addTodoLocally(newTodoId, newTodo);
+        socket.emit("addedTodo", newTodoId, newTodo);
+        setNewTodo({ category: "", name: "", description: "", dueDate: "" });
+        setShowTodoModal(false);
+        setTodoError("");
       } catch (error) {
-        console.error("Error adding todo", error);
+        setTodoError("Failed to add todo to the database.");
       }
     } else {
       setTodoError("All fields are required.");
@@ -386,7 +409,9 @@ function TodoList() {
                                 defaultValue={todo.name}
                                 inputClassName="todo-title-edit"
                                 className="todo-title"
-                                onEditMode={() => editTodo(todo.id, "title", todo.name)}
+                                onEditMode={() =>
+                                  editTodo(todo.id, "title", todo.name)
+                                }
                                 onBlur={() => finishedEditTodo(todo.id)}
                                 readonly={todo.isLocked}
                               ></EditText>
@@ -400,7 +425,13 @@ function TodoList() {
                                   rows={3}
                                   inputClassName="todo-description-edit"
                                   className="todo-description"
-                                  onEditMode={() => editTodo(todo.id, "description", todo.description)}
+                                  onEditMode={() =>
+                                    editTodo(
+                                      todo.id,
+                                      "description",
+                                      todo.description
+                                    )
+                                  }
                                   onBlur={() => finishedEditTodo(todo.id)}
                                   readonly={todo.isLocked}
                                 ></EditTextarea>

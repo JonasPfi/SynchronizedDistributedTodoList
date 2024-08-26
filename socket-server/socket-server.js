@@ -130,4 +130,9 @@ io.on("connection", (socket) => {
             console.log(`User ${socket.id} attempted to unlock todo ${todoId} but does not hold the lock`);
         }
     });
+
+    socket.on("addedTodo", async (todoId, todo) => {
+        console.log(`User ${socket.id} created a new todo ${todoId}`);
+        socket.broadcast.emit('addLocalTodo', todoId, todo);
+    })
 });
