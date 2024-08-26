@@ -134,5 +134,10 @@ io.on("connection", (socket) => {
     socket.on("addedTodo", async (todoId, todo) => {
         console.log(`User ${socket.id} created a new todo ${todoId}`);
         socket.broadcast.emit('addLocalTodo', todoId, todo);
-    })
+    });
+
+    socket.on("addedCategory", async (category) => {
+        console.log(`User ${socket.id} created a category ${category}`);
+        socket.broadcast.emit('addLocalCategory', category);
+    });
 });

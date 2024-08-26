@@ -85,11 +85,21 @@ function TodoList() {
       addTodoLocally(todoId, todo);
     });
 
+    socket.on("addLocalCategory", (category) => {
+      console.log("Received broadcast: Add local category: ", category);
+      setCategories((prevCategories) => [...prevCategories, category]);
+      setTodos((prevTodos) => [
+        ...prevTodos,
+        { category: category, todos: [] },
+      ]);
+    });
+
     return () => {
       socket.off("initializeLocks");
       socket.off("lockElement");
       socket.off("unlockElement");
       socket.off("addLocalTodo");
+      socket.off("addLocalCategory");
     };
   }, []);
 
@@ -155,7 +165,7 @@ function TodoList() {
     socket.emit("unlockTodo", todoId);
   };
 
-  const addCategory = async () => {
+  const postCategoryToDB = async () => {
     if (newCategory) {
       if (categories.includes(newCategory)) {
         setCategoryError("Category already exists.");
@@ -166,13 +176,27 @@ function TodoList() {
           category: newCategory,
         });
         if (response.status === 200) {
-          setTodos([...todos, { category: newCategory, todos: [] }]);
-          setCategories([...categories, newCategory]);
-          setNewCategory("");
-          setShowCategoryModal(false);
-          setCategoryError("");
-          socket.emit("refreshTableData");
         }
+      } catch (error) {
+        console.error("Error adding category", error);
+      }
+    }
+  };
+
+  const addCategory = async () => {
+    if (newCategory) {
+      if (categories.includes(newCategory)) {
+        setCategoryError("Category already exists.");
+        return;
+      }
+      try {
+        await postCategoryToDB();
+        setTodos([...todos, { category: newCategory, todos: [] }]);
+        setCategories([...categories, newCategory]);
+        setNewCategory("");
+        setShowCategoryModal(false);
+        setCategoryError("");
+        socket.emit("addedCategory", newCategory);
       } catch (error) {
         console.error("Error adding category", error);
       }
