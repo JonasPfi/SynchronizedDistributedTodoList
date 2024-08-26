@@ -142,8 +142,8 @@ function TodoList() {
     setTodos(updatedTodos);
   };
 
-  const editTodo = (todoId) => {
-    socket.emit("editTodo", todoId);
+  const editTodo = (todoId, field, content) => {
+    socket.emit("editTodo", todoId, field, content);
   };
   const finishedEditTodo = (todoId) => {
     socket.emit("unlockTodo", todoId);
@@ -386,7 +386,7 @@ function TodoList() {
                                 defaultValue={todo.name}
                                 inputClassName="todo-title-edit"
                                 className="todo-title"
-                                onEditMode={() => editTodo(todo.id)}
+                                onEditMode={() => editTodo(todo.id, "title", todo.name)}
                                 onBlur={() => finishedEditTodo(todo.id)}
                                 readonly={todo.isLocked}
                               ></EditText>
@@ -400,7 +400,7 @@ function TodoList() {
                                   rows={3}
                                   inputClassName="todo-description-edit"
                                   className="todo-description"
-                                  onEditMode={() => editTodo(todo.id)}
+                                  onEditMode={() => editTodo(todo.id, "description", todo.description)}
                                   onBlur={() => finishedEditTodo(todo.id)}
                                   readonly={todo.isLocked}
                                 ></EditTextarea>
