@@ -88,6 +88,7 @@ io.on("connection", (socket) => {
     console.log(`A user connected with ID: ${socket.id}`);
     socket.emit('userId', socket.id);
 
+    // Called when user disconnected
     socket.on("disconnect", async () => {
         console.log(`A user disconnected with ID: ${socket.id}`);
         // Unlock all todos locked by this user
@@ -106,12 +107,14 @@ io.on("connection", (socket) => {
         }
     });
 
+    // Gives sending user all locked todos
     socket.on("getLockedTodos", async () => {
         console.log(`User ${socket.id} requested locked todos`);
         const lockedTodos = await getLockedTodosFromRedis();
         socket.emit('lockedTodos', lockedTodos);
     });
 
+    // Locks todo which a user wants to edit
     socket.on("editTodo", async (todoId, field, content) => {
         console.log(`User ${socket.id} is locking todo ${todoId}`);
         // Save the lock in Redis
@@ -120,6 +123,7 @@ io.on("connection", (socket) => {
         socket.broadcast.emit('lockElement', todoId);
     });
 
+    // Unlocks todo after a user edited it
     socket.on("unlockTodo", async (todoId) => {
         console.log(`User ${socket.id} is unlocking todo ${todoId}`);
         // Attempt to unlock the todo
@@ -132,11 +136,13 @@ io.on("connection", (socket) => {
         }
     });
 
+    // Sends all clients a new todo which was added
     socket.on("addedTodo", async (todoId, todo) => {
         console.log(`User ${socket.id} created a new todo ${todoId}`);
         socket.broadcast.emit('addLocalTodo', todoId, todo);
     });
 
+    // Sends all clients a new category which was added
     socket.on("addedCategory", async (category) => {
         console.log(`User ${socket.id} created a category ${category}`);
         socket.broadcast.emit('addLocalCategory', category);
