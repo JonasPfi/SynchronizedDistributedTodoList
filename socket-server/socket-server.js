@@ -121,6 +121,7 @@ io.on("connection", (socket) => {
         await lockTodoInRedis(todoId, socket.id, field, content);
         // Notify other clients
         socket.broadcast.emit('lockElement', todoId);
+        socket.broadcast.emit('lockDatabaseElement', todoId, socket.id);
     });
 
     // Unlocks todo after a user edited it
@@ -131,6 +132,7 @@ io.on("connection", (socket) => {
         if (unlocked) {
             // Notify other clients
             socket.broadcast.emit('unlockElement', todoId);
+            socket.broadcast.emit('unlockDatabaseElement', todoId, socket.id);
         } else {
             console.log(`User ${socket.id} attempted to unlock todo ${todoId} but does not hold the lock`);
         }

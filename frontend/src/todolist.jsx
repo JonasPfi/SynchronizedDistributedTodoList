@@ -202,8 +202,6 @@ function TodoList() {
 
   const finishedEditTodo = async (todoId, type, content) => {
     try {
-      socket.emit("unlockTodo", todoId);
-      socket.emit("changedTodo", todoId, type, content);
       const response = await axios.put(`${URL}todo`, {
         todoId: todoId,
         type: type,
@@ -219,6 +217,8 @@ function TodoList() {
         );
         throw new Error("Failed to update todo in the database.");
       }
+      socket.emit("unlockTodo", todoId);
+      socket.emit("changedTodo", todoId, type, content);
     } catch (error) {
       console.error("Error updating todo", error);
       socket.emit(
