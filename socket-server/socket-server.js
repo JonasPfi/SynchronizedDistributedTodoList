@@ -107,6 +107,12 @@ io.on("connection", (socket) => {
         }
     });
 
+     // On todo status change, emit the change to all clients
+     socket.on("changedTodoStatus", async (todoId, completed) => {
+        console.log(`User ${socket.id} changed the status of todo ${todoId} to ${completed}`);
+        socket.broadcast.emit('todoStatusChanged', todoId, completed);
+    });
+
     // Gives sending user all locked todos
     socket.on("getLockedTodos", async () => {
         console.log(`User ${socket.id} requested locked todos`);
