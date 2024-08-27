@@ -180,16 +180,37 @@ function TodoList() {
     }
   }, [dataLoaded, tableData]);
 
-  const toggleComplete = (todoId) => {
+  const toggleComplete = async (todoId) => {
+    // Find the current completion status of the todo
+    const todoToUpdate = todos.flatMap(category => category.todos).find(todo => todo.id === todoId);
+    const newCompletedStatus = !todoToUpdate.completed;
+
     const updatedTodos = todos.map((category) => ({
-      ...category,
-      todos: category.todos.map((todo) =>
-        todo.id === todoId ? { ...todo, completed: !todo.completed } : todo
-      ),
+        ...category,
+        todos: category.todos.map((todo) =>
+            todo.id === todoId ? { ...todo, completed: newCompletedStatus } : todo
+        ),
     }));
 
     setTodos(updatedTodos);
-  };
+
+    try {
+        // Send the updated status to the server
+        const response = await axios.put(`${URL}todo/finished`, {
+            todoId: todoId,
+            completed: newCompletedStatus,
+            userId: userId,
+        });
+
+        if (response.status !== 200) {
+            throw new Error('Failed to update todo status');
+        }
+
+        socket.emit('changedTodoStatus', todoId, newCompletedStatus);
+    } catch (error) {
+        console.error('Error updating todo status', error);
+    }
+};
 
   const editTodo = (todoId, field, content) => {
     socket.emit("editTodo", todoId, field, content);

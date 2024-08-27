@@ -181,6 +181,35 @@ app.put('/todo', (req, res) => {
         res.status(400).json({ message: 'This function requires a body with "todoId", "type", "content", and "userId".' });
     }
 });
+
+// UPDATE path for todo finished status
+app.put('/todo/finished', (req, res) => {
+    if (req.body && req.body.todoId && typeof req.body.completed !== 'undefined' && req.body.userId) {
+        let todoId = req.body.todoId;
+        let completed = req.body.completed ? 1 : 0;
+
+        let query = `
+            UPDATE todo
+            SET todo_finished = ?
+            WHERE todo_id = ?;
+        `;
+
+        connection.query(query, [completed, todoId], (err, results) => {
+            if (err) {
+                console.error('Error updating todo status:', err);
+                res.status(500).json({ message: 'Error updating todo status.' });
+            } else if (results.affectedRows === 0) {
+                res.status(404).json({ message: 'Todo item not found.' });
+            } else {
+                res.status(200).json({ message: 'Todo status updated successfully.' });
+            }
+        });
+    } else {
+        res.status(400).json({ message: 'This function requires a body with "todoId", "completed", and "userId".' });
+    }
+});
+
+
 // POST path for adding a new todo
 app.post('/todo', (req, res) => {
     if (typeof req.body !== "undefined" && typeof req.body.title !== "undefined" && typeof req.body.description !== "undefined" && typeof req.body.category !== "undefined" && typeof req.body.dueDate !== "undefined") {
