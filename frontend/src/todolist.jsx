@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { EditText, EditTextarea } from "react-edit-text";
+import EditableText from "./components/EditableText";
+import EditableTextarea from "./components/EditableTextarea";
 import "./css/todolist.css";
 import axios from "axios";
 import socketIO from "socket.io-client";
@@ -8,7 +9,7 @@ const URL = import.meta.env.VITE_NGINX_URL
   ? import.meta.env.VITE_NGINX_URL
   : "http://localhost/";
 
-const socket = socketIO({
+const socket = socketIO(URL, {
   path: "/socket.io/",
   transports: ["websocket"],
   withCredentials: true,
@@ -26,14 +27,26 @@ function TodoList() {
     description: "",
     dueDate: "",
   });
+  const [updateTodo, setUpdateTodo] = useState({
+    id: "",
+    type: "",
+    content: "",
+  });
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showTodoModal, setShowTodoModal] = useState(false);
   const [todoError, setTodoError] = useState("");
-  const [categoryError, setCategoryError] = useState(""); // New state for category error
+  const [categoryError, setCategoryError] = useState("");
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    loadTableData();
-    loadCategories();
+    const loadData = async () => {
+      await loadTableData();
+      await loadCategories();
+      setDataLoaded(true);
+    };
+
+    loadData();
 
     socket.on("lockedTodos", (lockedTodos) => {
       console.log("Received locked todos:", lockedTodos);
@@ -74,10 +87,53 @@ function TodoList() {
       });
     });
 
+    socket.on("addLocalTodo", (todoId, todo) => {
+      console.log("Received broadcast: Add local todo: ", todoId, todo);
+      addTodoLocally(todoId, todo);
+    });
+
+    socket.on("addLocalCategory", (category) => {
+      console.log("Received broadcast: Add local category: ", category);
+      setCategories((prevCategories) => [...prevCategories, category]);
+      setTodos((prevTodos) => [
+        ...prevTodos,
+        { category: category, todos: [] },
+      ]);
+    });
+
+    socket.on("changeTodo", (todoId, type, content) => {
+      console.log("Received broadcast: Change Todo: ", todoId);
+      setTodos((prevTodos) => {
+        const updatedTodos = prevTodos.map((category) => ({
+          ...category,
+          todos: category.todos.map((todo) => {
+            if (todo.id === todoId) {
+              if (type == "description") {
+                return { ...todo, description: content };
+              } else {
+                return { ...todo, name: content };
+              }
+            }
+            return todo;
+          }),
+        }));
+        return updatedTodos;
+      });
+    });
+
+    socket.on("userId", (id) => {
+      console.log("Received emit: User ID:", id);
+      setUserId(id);
+    });
+
     return () => {
       socket.off("initializeLocks");
       socket.off("lockElement");
       socket.off("unlockElement");
+      socket.off("addLocalTodo");
+      socket.off("addLocalCategory");
+      socket.off("changeTodo");
+      socket.off("userId");
     };
   }, []);
 
@@ -101,37 +157,30 @@ function TodoList() {
   };
 
   useEffect(() => {
-    const categoriesMap = new Map();
-    tableData.forEach((item) => {
-      if (!categoriesMap.has(item.category_name)) {
-        categoriesMap.set(item.category_name, {
-          category: item.category_name,
-          todos: [],
+    if (dataLoaded) {
+      const categoriesMap = new Map();
+      tableData.forEach((item) => {
+        if (!categoriesMap.has(item.category_name)) {
+          categoriesMap.set(item.category_name, {
+            category: item.category_name,
+            todos: [],
+          });
+        }
+        categoriesMap.get(item.category_name).todos.push({
+          id: item.todo_id,
+          name: item.todo_title,
+          description: item.todo_description,
+          dueDate: item.todo_due_date,
+          completed: item.todo_finished === 1,
         });
-      }
-      categoriesMap.get(item.category_name).todos.push({
-        id: item.todo_id,
-        name: item.todo_title,
-        description: item.todo_description,
-        dueDate: item.todo_due_date,
-        completed: item.todo_finished === 1,
       });
-    });
 
-    const mappedTodos = Array.from(categoriesMap.values());
-    setTodos(mappedTodos);
-  }, [tableData]);
+      const mappedTodos = Array.from(categoriesMap.values());
+      setTodos(mappedTodos);
+    }
+  }, [dataLoaded, tableData]);
 
   const toggleComplete = (todoId) => {
-    const todoElement = document.getElementById(todoId);
-    if (todoElement) {
-      if (todoElement.classList.contains("completed")) {
-        todoElement.classList.remove("completed");
-      } else {
-        todoElement.classList.add("completed");
-      }
-    }
-
     const updatedTodos = todos.map((category) => ({
       ...category,
       todos: category.todos.map((todo) =>
@@ -142,14 +191,50 @@ function TodoList() {
     setTodos(updatedTodos);
   };
 
-  const editTodo = (todoId) => {
-    socket.emit("editTodo", todoId);
-  };
-  const finishedEditTodo = (todoId) => {
-    socket.emit("unlockTodo", todoId);
+  const editTodo = (todoId, field, content) => {
+    socket.emit("editTodo", todoId, field, content);
+    setUpdateTodo({
+      id: todoId,
+      type: field,
+      content: content,
+    });
   };
 
-  const addCategory = async () => {
+  const finishedEditTodo = async (todoId, type, content) => {
+    try {
+      const response = await axios.put(`${URL}todo`, {
+        todoId: todoId,
+        type: type,
+        content: content,
+        userId: userId,
+      });
+      if (response.status != 200) {
+        socket.emit(
+          "changedTodo",
+          updateTodo.id,
+          updateTodo.type,
+          updateTodo.content
+        );
+        throw new Error("Failed to update todo in the database.");
+      }
+      socket.emit("unlockTodo", todoId);
+      socket.emit("changedTodo", todoId, type, content);
+    } catch (error) {
+      console.error("Error updating todo", error);
+      socket.emit(
+        "changedTodo",
+        updateTodo.id,
+        updateTodo.type,
+        updateTodo.content
+      );
+    }
+  };
+
+  const handleTodoChange = (todoId, type, content) => {
+    socket.emit("changedTodo", todoId, type, content);
+  };
+
+  const postCategoryToDB = async () => {
     if (newCategory) {
       if (categories.includes(newCategory)) {
         setCategoryError("Category already exists.");
@@ -160,17 +245,71 @@ function TodoList() {
           category: newCategory,
         });
         if (response.status === 200) {
-          setTodos([...todos, { category: newCategory, todos: [] }]);
-          setCategories([...categories, newCategory]);
-          setNewCategory("");
-          setShowCategoryModal(false);
-          setCategoryError("");
-          socket.emit("refreshTableData");
         }
       } catch (error) {
         console.error("Error adding category", error);
       }
     }
+  };
+
+  const addCategory = async () => {
+    if (newCategory) {
+      if (categories.includes(newCategory)) {
+        setCategoryError("Category already exists.");
+        return;
+      }
+      try {
+        await postCategoryToDB();
+        setTodos([...todos, { category: newCategory, todos: [] }]);
+        setCategories([...categories, newCategory]);
+        setNewCategory("");
+        setShowCategoryModal(false);
+        setCategoryError("");
+        socket.emit("addedCategory", newCategory);
+      } catch (error) {
+        console.error("Error adding category", error);
+      }
+    }
+  };
+
+  const postTodoToDB = async (todo) => {
+    try {
+      const response = await axios.post(`${URL}todo`, {
+        title: todo.name,
+        description: todo.description,
+        category: todo.category,
+        dueDate: todo.dueDate,
+      });
+
+      if (response.status === 200) {
+        return response.data.insertId;
+      }
+    } catch (error) {
+      console.error("Error adding todo", error);
+      throw new Error("Failed to add todo to the database.");
+    }
+  };
+
+  const addTodoLocally = (newTodoId, newTodo) => {
+    setTodos((prevTodos) => {
+      const updatedTodos = prevTodos.map((category) => {
+        if (category.category === newTodo.category) {
+          const newTodoItem = {
+            id: newTodoId,
+            name: newTodo.name,
+            description: newTodo.description,
+            dueDate: newTodo.dueDate,
+            completed: false,
+          };
+          return {
+            ...category,
+            todos: [...category.todos, newTodoItem],
+          };
+        }
+        return category;
+      });
+      return updatedTodos;
+    });
   };
 
   const addTodo = async () => {
@@ -200,37 +339,14 @@ function TodoList() {
       }
 
       try {
-        const response = await axios.post(`${URL}todo`, {
-          title: newTodo.name,
-          description: newTodo.description,
-          category: newTodo.category,
-          dueDate: newTodo.dueDate,
-        });
-        if (response.status === 200) {
-          const updatedTodos = todos.map((category) => {
-            if (category.category === newTodo.category) {
-              const newTodoItem = {
-                id: response.data.insertId,
-                name: newTodo.name,
-                description: newTodo.description,
-                dueDate: newTodo.dueDate,
-                completed: false,
-              };
-              return {
-                ...category,
-                todos: [...category.todos, newTodoItem],
-              };
-            }
-            return category;
-          });
-          setTodos(updatedTodos);
-          setNewTodo({ category: "", name: "", description: "", dueDate: "" });
-          setShowTodoModal(false);
-          setTodoError("");
-          socket.emit("refreshTableData");
-        }
+        const newTodoId = await postTodoToDB(newTodo);
+        addTodoLocally(newTodoId, newTodo);
+        socket.emit("addedTodo", newTodoId, newTodo);
+        setNewTodo({ category: "", name: "", description: "", dueDate: "" });
+        setShowTodoModal(false);
+        setTodoError("");
       } catch (error) {
-        console.error("Error adding todo", error);
+        setTodoError("Failed to add todo to the database.");
       }
     } else {
       setTodoError("All fields are required.");
@@ -361,7 +477,6 @@ function TodoList() {
                           todo.isLocked ? "todo-item-locked" : ""
                         } ${todo.completed ? "completed" : ""}`}
                       >
-                        {/* Todo item: checkmark, title, description and due date */}
                         <div className="todo-details">
                           <label className="todo-left check-container">
                             <input
@@ -377,37 +492,40 @@ function TodoList() {
                               ></path>
                             </svg>
                           </label>
-                          {/* Title and description */}
-                          <div className="todo-title-description">
-                            {/* Title */}
-                            <React.Fragment>
-                              <EditText
-                                name={todo.id + "-title"}
-                                defaultValue={todo.name}
-                                inputClassName="todo-title-edit"
-                                className="todo-title"
-                                onEditMode={() => editTodo(todo.id)}
-                                onBlur={() => finishedEditTodo(todo.id)}
-                                readonly={todo.isLocked}
-                              ></EditText>
-                            </React.Fragment>
-                            {/* Description */}
+                          <div className="todo-title">
+                            <EditableText
+                              value={todo.name}
+                              onSave={(e) =>
+                                finishedEditTodo(todo.id, "title", e)
+                              }
+                              onEditMode={() =>
+                                editTodo(todo.id, "title", todo.title)
+                              }
+                              onChange={(e) =>
+                                handleTodoChange(todo.id, "title", e)
+                              }
+                              readonly={todo.isLocked}
+                            />
                             <div className="todo-description">
-                              <React.Fragment>
-                                <EditTextarea
-                                  name={todo.id + "-description"}
-                                  defaultValue={todo.description}
-                                  rows={3}
-                                  inputClassName="todo-description-edit"
-                                  className="todo-description"
-                                  onEditMode={() => editTodo(todo.id)}
-                                  onBlur={() => finishedEditTodo(todo.id)}
-                                  readonly={todo.isLocked}
-                                ></EditTextarea>
-                              </React.Fragment>
+                              <EditableTextarea
+                                value={todo.description}
+                                onSave={(e) =>
+                                  finishedEditTodo(todo.id, "description", e)
+                                }
+                                onEditMode={() =>
+                                  editTodo(
+                                    todo.id,
+                                    "description",
+                                    todo.description
+                                  )
+                                }
+                                onChange={(e) =>
+                                  handleTodoChange(todo.id, "description", e)
+                                }
+                                readonly={todo.isLocked}
+                              />
                             </div>
                           </div>
-                          {/* Due date */}
                           <div className="todo-text-duo-date">
                             <label className="todo-title">Due:</label>
                             <div
