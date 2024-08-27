@@ -114,9 +114,10 @@ app.delete('/todotable/:id', (req, res) => {
 });
 // UPDATE path for todos
 app.put('/todo', (req, res) => {
-    if (typeof req.body !== "undefined" && typeof req.body.title !== "undefined" && typeof req.body.description !== "undefined" && typeof req.body.userId !== "undefined") {
-        let title = req.body.title;
-        let description = req.body.description;
+    if (typeof req.body !== "undefined" && typeof req.body.type !== "undefined" && typeof req.body.content !== "undefined" && typeof req.body.userId !== "undefined" && typeof req.body.todoId !== "undefined") {
+        let todoId = req.body.userId;
+        let type = req.body.type;
+        let content = req.body.content;
         let userId = req.body.userId;
         // NO IMPLEMENTATION
     } else {

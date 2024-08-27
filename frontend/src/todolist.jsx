@@ -27,6 +27,11 @@ function TodoList() {
     description: "",
     dueDate: "",
   });
+  const [updateTodo, setUpdateTodo] = useState({
+    id: "",
+    type: "",
+    content: "",
+  });
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showTodoModal, setShowTodoModal] = useState(false);
   const [todoError, setTodoError] = useState("");
@@ -96,8 +101,28 @@ function TodoList() {
       ]);
     });
 
+    socket.on("changeTodo", (todoId, type, content) => {
+      console.log("Received broadcast: Change Todo: ", todoId);
+      setTodos((prevTodos) => {
+        const updatedTodos = prevTodos.map((category) => ({
+          ...category,
+          todos: category.todos.map((todo) => {
+            if (todo.id === todoId) {
+              if (type == "description") {
+                return { ...todo, description: content };
+              } else {
+                return { ...todo, name: content };
+              }
+            }
+            return todo;
+          }),
+        }));
+        return updatedTodos;
+      });
+    });
+
     socket.on("userId", (id) => {
-      console.log("User ID:", id);
+      console.log("Received emit: User ID:", id);
       setUserId(id);
     });
 
@@ -107,6 +132,7 @@ function TodoList() {
       socket.off("unlockElement");
       socket.off("addLocalTodo");
       socket.off("addLocalCategory");
+      socket.off("changeTodo");
       socket.off("userId");
     };
   }, []);
@@ -167,20 +193,46 @@ function TodoList() {
 
   const editTodo = (todoId, field, content) => {
     socket.emit("editTodo", todoId, field, content);
+    setUpdateTodo({
+      id: todoId,
+      type: field,
+      content: content,
+    });
   };
 
-  const finishedEditTodo = (todoId) => {
-    socket.emit("unlockTodo", todoId);
+  const finishedEditTodo = async (todoId, type, content) => {
+    try {
+      socket.emit("unlockTodo", todoId);
+      socket.emit("changedTodo", todoId, type, content);
+      const response = await axios.put(`${URL}todo`, {
+        todoId: todoId,
+        type: type,
+        content: content,
+        userId: userId,
+      });
+      if (response.status != 200) {
+        socket.emit(
+          "changedTodo",
+          updateTodo.id,
+          updateTodo.type,
+          updateTodo.content
+        );
+        throw new Error("Failed to update todo in the database.");
+      }
+    } catch (error) {
+      console.error("Error updating todo", error);
+      socket.emit(
+        "changedTodo",
+        updateTodo.id,
+        updateTodo.type,
+        updateTodo.content
+      );
+    }
   };
 
-  const handleTitleChange = (todoId, newTitle) => {
-    //TO BE IMPLEMENTED
+  const handleTodoChange = (todoId, type, content) => {
+    socket.emit("changedTodo", todoId, type, content);
   };
-  
-  const handleDescriptionChange = (todoId, newDescription) => {
-    //TO BE IMPLEMENTED
-  };
-  
 
   const postCategoryToDB = async () => {
     if (newCategory) {
@@ -443,17 +495,23 @@ function TodoList() {
                           <div className="todo-title">
                             <EditableText
                               value={todo.name}
-                              onSave={() => finishedEditTodo(todo.id)}
+                              onSave={(e) =>
+                                finishedEditTodo(todo.id, "title", e)
+                              }
                               onEditMode={() =>
                                 editTodo(todo.id, "title", todo.title)
                               }
-                              onChange={(e) => handleTitleChange(todo.id, e)}
+                              onChange={(e) =>
+                                handleTodoChange(todo.id, "title", e)
+                              }
                               readonly={todo.isLocked}
                             />
                             <div className="todo-description">
                               <EditableTextarea
                                 value={todo.description}
-                                onSave={() => finishedEditTodo(todo.id)}
+                                onSave={(e) =>
+                                  finishedEditTodo(todo.id, "description", e)
+                                }
                                 onEditMode={() =>
                                   editTodo(
                                     todo.id,
@@ -461,7 +519,9 @@ function TodoList() {
                                     todo.description
                                   )
                                 }
-                                onChange={(e) => handleDescriptionChange(todo.id, e)}
+                                onChange={(e) =>
+                                  handleTodoChange(todo.id, "description", e)
+                                }
                                 readonly={todo.isLocked}
                               />
                             </div>

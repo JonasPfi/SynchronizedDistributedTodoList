@@ -147,4 +147,10 @@ io.on("connection", (socket) => {
         console.log(`User ${socket.id} created a category ${category}`);
         socket.broadcast.emit('addLocalCategory', category);
     });
+
+    // On todo change emit to all clients the current todo value
+    socket.on("changedTodo", async (todoId, type, content) => {
+        console.log(`User ${socket.id} changed todo ${todoId}`);
+        socket.broadcast.emit('changeTodo', todoId, type, content);
+    });
 });
