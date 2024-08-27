@@ -173,6 +173,15 @@ function TodoList() {
     socket.emit("unlockTodo", todoId);
   };
 
+  const handleTitleChange = (todoId, newTitle) => {
+    //TO BE IMPLEMENTED
+  };
+  
+  const handleDescriptionChange = (todoId, newDescription) => {
+    //TO BE IMPLEMENTED
+  };
+  
+
   const postCategoryToDB = async () => {
     if (newCategory) {
       if (categories.includes(newCategory)) {
@@ -438,6 +447,7 @@ function TodoList() {
                               onEditMode={() =>
                                 editTodo(todo.id, "title", todo.title)
                               }
+                              onChange={(e) => handleTitleChange(todo.id, e)}
                               readonly={todo.isLocked}
                             />
                             <div className="todo-description">
@@ -451,6 +461,7 @@ function TodoList() {
                                     todo.description
                                   )
                                 }
+                                onChange={(e) => handleDescriptionChange(todo.id, e)}
                                 readonly={todo.isLocked}
                               />
                             </div>

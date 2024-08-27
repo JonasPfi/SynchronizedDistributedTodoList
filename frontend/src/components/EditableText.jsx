@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../css/todolist.css'; 
 
-const EditableText = ({ value, onSave, onEditMode, readonly }) => {
+const EditableText = ({ value, onSave, onEditMode, onChange, readonly }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(value);
 
@@ -29,13 +29,20 @@ const EditableText = ({ value, onSave, onEditMode, readonly }) => {
     }
   };
 
+  const handleChange = (e) => {
+    setInputValue(e.target.value);
+    if (onChange) {
+      onChange(e.target.value);  
+    }
+  };
+
   return (
     <div>
       {isEditing ? (
         <input
           type="text"
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={handleChange}  
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           disabled={readonly}
@@ -47,7 +54,7 @@ const EditableText = ({ value, onSave, onEditMode, readonly }) => {
           onClick={handleClick}
           className="todo-title"  
         >
-          {value}
+          {inputValue}
         </span>
       )}
     </div>

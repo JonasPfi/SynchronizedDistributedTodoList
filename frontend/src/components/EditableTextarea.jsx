@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import '../css/todolist.css'; 
 
-const EditableTextarea = ({ value, onSave, onEditMode, readonly }) => {
+const EditableTextarea = ({ value, onSave, onEditMode, onChange, readonly }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(value);
 
   useEffect(() => {
-    setInputValue(value);
+    setInputValue(value); 
   }, [value]);
 
   const handleBlur = () => {
@@ -33,12 +33,19 @@ const EditableTextarea = ({ value, onSave, onEditMode, readonly }) => {
     }
   };
 
+  const handleChange = (e) => {
+    setInputValue(e.target.value);
+    if (onChange) {
+      onChange(e.target.value);  
+    }
+  };
+
   return (
     <div>
       {isEditing ? (
         <textarea
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={handleChange}  
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           disabled={readonly}
@@ -51,7 +58,7 @@ const EditableTextarea = ({ value, onSave, onEditMode, readonly }) => {
           onClick={handleClick}
           className="todo-description" 
         >
-          {value}
+          {inputValue}
         </p>
       )}
     </div>
