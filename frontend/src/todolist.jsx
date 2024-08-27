@@ -181,31 +181,48 @@ function TodoList() {
   }, [dataLoaded, tableData]);
 
   // Function for toggling the completion status of a todo
-  const toggleComplete = async (todoId) => {
-    // Find the current completion status of the todo
-    const todoToUpdate = todos.flatMap(category => category.todos).find(todo => todo.id === todoId);
-    const newCompletedStatus = !todoToUpdate.completed;
+const toggleComplete = async (todoId) => {
+  // Find the current completion status of the todo
+  const todoToUpdate = todos.flatMap(category => category.todos).find(todo => todo.id === todoId);
+  const newCompletedStatus = !todoToUpdate.completed;
 
-    const updatedTodos = todos.map((category) => ({
+  // local update of the todo status
+  const updatedTodos = todos.map((category) => ({
+    ...category,
+    todos: category.todos.map((todo) =>
+      todo.id === todoId ? { ...todo, completed: newCompletedStatus } : todo
+    ),
+  }));
+
+  setTodos(updatedTodos);
+
+  try {
+    // Send status change to the server
+    const response = await axios.put(`${URL}todo/finished`, {
+      todoId: todoId,
+      completed: newCompletedStatus,
+      userId: userId,
+    });
+
+    if (response.status === 200) {
+      // Broadcast the change to all connected clients
+      socket.emit('changedTodoStatus', todoId, newCompletedStatus);
+    } else {
+      throw new Error('Failed to update todo status');
+    }
+  } catch (error) {
+    console.error('Error updating todo status', error);
+    // Rollback the status change if the request fails
+    setTodos((prevTodos) => {
+      const revertedTodos = prevTodos.map((category) => ({
         ...category,
         todos: category.todos.map((todo) =>
-            todo.id === todoId ? { ...todo, completed: newCompletedStatus } : todo
+          todo.id === todoId ? { ...todo, completed: !newCompletedStatus } : todo
         ),
-    }));
-
-    setTodos(updatedTodos);
-
-    try {
-        // Send status change to the server
-        if (response.status !== 200) {
-            throw new Error('Failed to update todo status');
-        }
-
-        // Broadcast the change to all connected clients
-        socket.emit('changedTodoStatus', todoId, newCompletedStatus);
-    } catch (error) {
-        console.error('Error updating todo status', error);
-    }
+      }));
+      return revertedTodos;
+    });
+  }
 };
 
 //  Receiving the broadcast message
