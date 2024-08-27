@@ -61,6 +61,18 @@ function TodoList() {
       });
     });
 
+    socket.on('todoStatusChanged', (todoId, completed) => {
+      setTodos((prevTodos) => {
+          const updatedTodos = prevTodos.map((category) => ({
+              ...category,
+              todos: category.todos.map((todo) =>
+                  todo.id === todoId ? { ...todo, completed } : todo
+              ),
+          }));
+          return updatedTodos;
+      });
+  });
+
     socket.on("lockElement", (todoId) => {
       console.log("Received broadcast: lockElement for todoId:", todoId);
       setTodos((prevTodos) => {
@@ -224,25 +236,6 @@ const toggleComplete = async (todoId) => {
     });
   }
 };
-
-//  Receiving the broadcast message
-useEffect(() => {
-    socket.on('todoStatusChanged', (todoId, completed) => {
-        setTodos((prevTodos) => {
-            const updatedTodos = prevTodos.map((category) => ({
-                ...category,
-                todos: category.todos.map((todo) =>
-                    todo.id === todoId ? { ...todo, completed } : todo
-                ),
-            }));
-            return updatedTodos;
-        });
-    });
-
-    return () => {
-        socket.off('todoStatusChanged');
-    };
-}, []);
 
   const editTodo = (todoId, field, content) => {
     socket.emit("editTodo", todoId, field, content);
