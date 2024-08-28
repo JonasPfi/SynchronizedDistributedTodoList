@@ -383,7 +383,7 @@ const toggleComplete = async (todoId) => {
               });
 
               // Broadcast an andere Clients
-              socket.emit('deleteTodo', todoId);  // Hier das neue Event auslösen
+              socket.emit('deleteTodo', todoId);
           } else {
               throw new Error('Failed to delete todo');
           }
