@@ -155,6 +155,7 @@ function TodoList() {
       socket.off("addLocalTodo");
       socket.off("addLocalCategory");
       socket.off("changeTodo");
+      socket.off("deletedTodo");
       socket.off("userId");
     };
   }, []);
@@ -391,6 +392,7 @@ const toggleComplete = async (todoId) => {
       }
   };
 
+  // Function to confirm and delete a todo
   const confirmAndDeleteTodo = (todoId) => {
     if (window.confirm("Are you sure you want to delete this task?")) {
         deleteTodo(todoId);
