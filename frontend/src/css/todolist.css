@@ -354,7 +354,6 @@ input.error {
   margin-bottom: 10px;
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -371,4 +370,18 @@ input.error {
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: #1565c0;
+}
+
+.delete-button {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-left: 10px;
+}
+
+.delete-button:hover {
+  background-color: #ff7875;
 }

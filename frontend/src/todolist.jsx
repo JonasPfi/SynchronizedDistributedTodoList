@@ -138,6 +138,16 @@ function TodoList() {
       setUserId(id);
     });
 
+    socket.on('deletedTodo', (todoId) => {
+      setTodos((prevTodos) => {
+        const updatedTodos = prevTodos.map((category) => ({
+          ...category,
+          todos: category.todos.filter((todo) => todo.id !== todoId),
+        }));
+        return updatedTodos.filter(category => category.todos.length > 0); 
+      });
+    });
+
     return () => {
       socket.off("initializeLocks");
       socket.off("lockElement");
@@ -358,6 +368,35 @@ const toggleComplete = async (todoId) => {
     });
   };
 
+    const deleteTodo = async (todoId) => {
+      try {
+          const response = await axios.delete(`${URL}todotable/${todoId}`);
+          if (response.status === 200) {
+              // Local update of todos after successful deletion
+              setTodos((prevTodos) => {
+                  const updatedTodos = prevTodos.map((category) => ({
+                      ...category,
+                      todos: category.todos.filter((todo) => todo.id !== todoId),
+                  }));
+                  return updatedTodos.filter(category => category.todos.length > 0);
+              });
+
+              // Broadcast an andere Clients
+              socket.emit('deleteTodo', todoId);  // Hier das neue Event auslösen
+          } else {
+              throw new Error('Failed to delete todo');
+          }
+      } catch (error) {
+          console.error('Error deleting todo', error);
+      }
+  };
+
+  const confirmAndDeleteTodo = (todoId) => {
+    if (window.confirm("Are you sure you want to delete this task?")) {
+        deleteTodo(todoId);
+    }
+  };
+
   const addTodo = async () => {
     const existingTodo = todos.find((cat) =>
       cat.todos.some((todo) => todo.name === newTodo.name)
@@ -571,7 +610,8 @@ const toggleComplete = async (todoId) => {
                                 readonly={todo.isLocked}
                               />
                             </div>
-                          </div>
+                            <button onClick={() => confirmAndDeleteTodo(todo.id)} className="delete-button">Delete</button>
+                            </div>
                           <div className="todo-text-duo-date">
                             <label className="todo-title">Due:</label>
                             <div

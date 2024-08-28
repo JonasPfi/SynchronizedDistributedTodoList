@@ -144,6 +144,11 @@ io.on("connection", (socket) => {
         }
     });
 
+    socket.on("deleteTodo", async (todoId) => {
+        console.log(`User ${socket.id} requested to delete todo ${todoId}`);
+        socket.broadcast.emit('deletedTodo', todoId);
+    });
+
     // Sends all clients a new todo which was added
     socket.on("addedTodo", async (todoId, todo) => {
         console.log(`User ${socket.id} created a new todo ${todoId}`);

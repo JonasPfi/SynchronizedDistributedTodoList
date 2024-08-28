@@ -271,6 +271,22 @@ app.post('/category', (req, res) => {
         res.status(400).json({ message: 'This function requires a body with "category"' });
     }
 });
+
+// DELETE path for todo table
+app.delete('/todotable/:id', (req, res) => {
+    let id = req.params.id;
+    console.log("Request to delete Item: " + id);
+
+    connection.query("DELETE FROM `todo` WHERE `todo`.`todo_id` = ?", [id], function (error, results, fields) {
+        if (error) {
+            console.error(error);
+            res.status(500).json(error);
+        } else {
+            console.log('Success answer: ', results);
+            res.status(200).json(results);
+        }
+    });
+});
 // ###################### DATABASE PART END ######################
 
 // All requests to /static/... will be redirected to static files in the folder "public"
