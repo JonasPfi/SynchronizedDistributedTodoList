@@ -60,7 +60,7 @@ CREATE TABLE `todo` (
 --
 
 INSERT INTO `todo` (`todo_id`, `todo_title`, `todo_description`, `todo_due_date`, `todo_finished`, `category_id`) VALUES
-(2, 'Clean the fridge', 'Remove all food items, wipe down shelves and drawers, and discard expired products.', '2024-09-30', 0, 1),
+(2, 'Clean the fridge', 'Remove all food items, wipe down shelves and drawers, and discard expired products.', '2024-09-21', 0, 1),
 (3, 'Descale dishwasher', 'Run an empty cycle with a descaling agent to remove limescale and improve efficiency.', '2024-07-19', 0, 1),
 (4, 'Sanitize trash can', 'Empty the trash can, thoroughly clean it, and sanitize both the inside and outside to eliminate odors.', '2024-10-20', 0, 1),
 (5, 'Mow the lawn', 'Mow the grass, remove clippings, and ensure an even cut height for a neat appearance.', '2024-09-17', 0, 2),
