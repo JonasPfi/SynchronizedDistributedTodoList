@@ -273,7 +273,7 @@ app.post('/category', (req, res) => {
 });
 
 // DELETE path for todo table
-app.delete('/todotable/:id', (req, res) => {
+app.delete('/todo/:id', (req, res) => {
     let id = req.params.id;
     console.log("Request to delete Item: " + id);
 
