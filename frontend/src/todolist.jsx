@@ -138,6 +138,16 @@ function TodoList() {
       setUserId(id);
     });
 
+    socket.on('deletedTodo', (todoId) => {
+      setTodos((prevTodos) => {
+        const updatedTodos = prevTodos.map((category) => ({
+          ...category,
+          todos: category.todos.filter((todo) => todo.id !== todoId),
+        }));
+        return updatedTodos.filter(category => category.todos.length > 0); 
+      });
+    });
+
     return () => {
       socket.off("initializeLocks");
       socket.off("lockElement");
@@ -145,6 +155,7 @@ function TodoList() {
       socket.off("addLocalTodo");
       socket.off("addLocalCategory");
       socket.off("changeTodo");
+      socket.off("deletedTodo");
       socket.off("userId");
     };
   }, []);
@@ -356,6 +367,36 @@ const toggleComplete = async (todoId) => {
       });
       return updatedTodos;
     });
+  };
+
+    const deleteTodo = async (todoId) => {
+      try {
+          const response = await axios.delete(`${URL}todotable/${todoId}`);
+          if (response.status === 200) {
+              // Local update of todos after successful deletion
+              setTodos((prevTodos) => {
+                  const updatedTodos = prevTodos.map((category) => ({
+                      ...category,
+                      todos: category.todos.filter((todo) => todo.id !== todoId),
+                  }));
+                  return updatedTodos.filter(category => category.todos.length > 0);
+              });
+
+              // Broadcast an andere Clients
+              socket.emit('deleteTodo', todoId);
+          } else {
+              throw new Error('Failed to delete todo');
+          }
+      } catch (error) {
+          console.error('Error deleting todo', error);
+      }
+  };
+
+  // Function to confirm and delete a todo
+  const confirmAndDeleteTodo = (todoId) => {
+    if (window.confirm("Are you sure you want to delete this task?")) {
+        deleteTodo(todoId);
+    }
   };
 
   const addTodo = async () => {
@@ -571,7 +612,8 @@ const toggleComplete = async (todoId) => {
                                 readonly={todo.isLocked}
                               />
                             </div>
-                          </div>
+                            <button onClick={() => confirmAndDeleteTodo(todo.id)} className="delete-button">Delete</button>
+                            </div>
                           <div className="todo-text-duo-date">
                             <label className="todo-title">Due:</label>
                             <div
