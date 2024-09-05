@@ -11,7 +11,7 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_HOSTNAME: ${MYSQL_HOSTNAME}
-      PORT: 8080
+      PORT: ${SERVER_PORT}
       HOST: server-1
       FRONTEND_URL: ${FRONTEND_URL}
     links:
@@ -31,7 +31,7 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_HOSTNAME: ${MYSQL_HOSTNAME}
-      PORT: 8080
+      PORT: ${SERVER_PORT}
       HOST: server-2
       FRONTEND_URL: ${FRONTEND_URL}
     links:
@@ -50,6 +50,7 @@ services:
       PORT: ${SOCKET_IO_PORT}
       HOST: ${SOCKET_IO_HOST}
       FRONTEND_URL: ${FRONTEND_URL}
+      REDIS_PORT: ${REDIS_PORT}
     links:
       - todolistdb
       - redis
@@ -64,9 +65,10 @@ services:
       - "9091:9090"
     restart: always
     environment:
-      PORT: 9090
+      PORT: ${SOCKET_IO_PORT}
       HOST: socket-server-2
       FRONTEND_URL: ${FRONTEND_URL}
+      REDIS_PORT: ${REDIS_PORT}
     links:
       - todolistdb
       - redis
@@ -90,7 +92,7 @@ services:
     image: phpmyadmin/phpmyadmin
     restart: always
     ports:
-      - 8085:80
+      - "8085:80"
     environment:
       PMA_HOST: todolistdb
     networks:
@@ -101,7 +103,7 @@ services:
       context: ./frontend
       args:
         - VITE_NGINX_URL=${VITE_NGINX_URL}
-        - VITE_FRONTEND_PORT=${VITE_FRONTEND_PORT}
+        - VITE_FRONTEND_PORT=${FRONTEND_PORT}
     ports:
       - "3000:3000"
     environment:

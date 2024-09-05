@@ -6,7 +6,7 @@ const { createAdapter } = require('@socket.io/redis-adapter');
 // Create and configure Redis clients
 const pubClient = new Redis({
     host: 'redis',
-    port: 6379
+    port: process.env.REDIS_PORT || 6379
 });
 const subClient = pubClient.duplicate();
 
