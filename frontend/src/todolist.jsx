@@ -5,10 +5,12 @@ import "./css/todolist.css";
 import axios from "axios";
 import socketIO from "socket.io-client";
 
+// Base URL for the API, using environment variable or default to localhost
 const URL = import.meta.env.VITE_NGINX_URL
   ? import.meta.env.VITE_NGINX_URL
   : "http://localhost/";
 
+// Setting up socket.io connection
 const socket = socketIO(URL, {
   path: "/socket.io/",
   transports: ["websocket"],
@@ -16,6 +18,7 @@ const socket = socketIO(URL, {
 });
 
 function TodoList() {
+  // State variables to manage todos, categories, and various UI states
   const [tableData, setTableData] = useState([]);
   const [todos, setTodos] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -40,6 +43,7 @@ function TodoList() {
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
+    // Function to load initial data from the server
     const loadData = async () => {
       await loadTableData();
       await loadCategories();
@@ -48,6 +52,7 @@ function TodoList() {
 
     loadData();
 
+    // Set up socket event listeners for various todo and category updates
     socket.on("lockedTodos", (lockedTodos) => {
       console.log("Received locked todos:", lockedTodos);
       setTodos((prevTodos) => {
@@ -61,17 +66,17 @@ function TodoList() {
       });
     });
 
-    socket.on('todoStatusChanged', (todoId, completed) => {
+    socket.on("todoStatusChanged", (todoId, completed) => {
       setTodos((prevTodos) => {
-          const updatedTodos = prevTodos.map((category) => ({
-              ...category,
-              todos: category.todos.map((todo) =>
-                  todo.id === todoId ? { ...todo, completed } : todo
-              ),
-          }));
-          return updatedTodos;
+        const updatedTodos = prevTodos.map((category) => ({
+          ...category,
+          todos: category.todos.map((todo) =>
+            todo.id === todoId ? { ...todo, completed } : todo
+          ),
+        }));
+        return updatedTodos;
       });
-  });
+    });
 
     socket.on("lockElement", (todoId) => {
       console.log("Received broadcast: lockElement for todoId:", todoId);
@@ -138,17 +143,18 @@ function TodoList() {
       setUserId(id);
     });
 
-    socket.on('deletedTodo', (todoId) => {
+    socket.on("deletedTodo", (todoId) => {
       setTodos((prevTodos) => {
         const updatedTodos = prevTodos.map((category) => ({
           ...category,
           todos: category.todos.filter((todo) => todo.id !== todoId),
         }));
-        return updatedTodos.filter(category => category.todos.length > 0); 
+        return updatedTodos.filter((category) => category.todos.length > 0);
       });
     });
 
     return () => {
+      // Clean up socket event listeners on component unmount
       socket.off("initializeLocks");
       socket.off("lockElement");
       socket.off("unlockElement");
@@ -160,6 +166,7 @@ function TodoList() {
     };
   }, []);
 
+  // Function to load todo data from the server
   const loadTableData = async () => {
     try {
       const response = await axios.get(`${URL}database`);
@@ -170,6 +177,7 @@ function TodoList() {
     }
   };
 
+  // Function to load category data from the server
   const loadCategories = async () => {
     try {
       const response = await axios.get(`${URL}category`);
@@ -204,50 +212,55 @@ function TodoList() {
   }, [dataLoaded, tableData]);
 
   // Function for toggling the completion status of a todo
-const toggleComplete = async (todoId) => {
-  // Find the current completion status of the todo
-  const todoToUpdate = todos.flatMap(category => category.todos).find(todo => todo.id === todoId);
-  const newCompletedStatus = !todoToUpdate.completed;
+  const toggleComplete = async (todoId) => {
+    // Find the current completion status of the todo
+    const todoToUpdate = todos
+      .flatMap((category) => category.todos)
+      .find((todo) => todo.id === todoId);
+    const newCompletedStatus = !todoToUpdate.completed;
 
-  // local update of the todo status
-  const updatedTodos = todos.map((category) => ({
-    ...category,
-    todos: category.todos.map((todo) =>
-      todo.id === todoId ? { ...todo, completed: newCompletedStatus } : todo
-    ),
-  }));
+    // local update of the todo status
+    const updatedTodos = todos.map((category) => ({
+      ...category,
+      todos: category.todos.map((todo) =>
+        todo.id === todoId ? { ...todo, completed: newCompletedStatus } : todo
+      ),
+    }));
 
-  setTodos(updatedTodos);
+    setTodos(updatedTodos);
 
-  try {
-    // Send status change to the server
-    const response = await axios.put(`${URL}todo/finished`, {
-      todoId: todoId,
-      completed: newCompletedStatus,
-      userId: userId,
-    });
+    try {
+      // Send status change to the server
+      const response = await axios.put(`${URL}todo/finished`, {
+        todoId: todoId,
+        completed: newCompletedStatus,
+        userId: userId,
+      });
 
-    if (response.status === 200) {
-      // Broadcast the change to all connected clients
-      socket.emit('changedTodoStatus', todoId, newCompletedStatus);
-    } else {
-      throw new Error('Failed to update todo status');
+      if (response.status === 200) {
+        // Broadcast the change to all connected clients
+        socket.emit("changedTodoStatus", todoId, newCompletedStatus);
+      } else {
+        throw new Error("Failed to update todo status");
+      }
+    } catch (error) {
+      console.error("Error updating todo status", error);
+      // Rollback the status change if the request fails
+      setTodos((prevTodos) => {
+        const revertedTodos = prevTodos.map((category) => ({
+          ...category,
+          todos: category.todos.map((todo) =>
+            todo.id === todoId
+              ? { ...todo, completed: !newCompletedStatus }
+              : todo
+          ),
+        }));
+        return revertedTodos;
+      });
     }
-  } catch (error) {
-    console.error('Error updating todo status', error);
-    // Rollback the status change if the request fails
-    setTodos((prevTodos) => {
-      const revertedTodos = prevTodos.map((category) => ({
-        ...category,
-        todos: category.todos.map((todo) =>
-          todo.id === todoId ? { ...todo, completed: !newCompletedStatus } : todo
-        ),
-      }));
-      return revertedTodos;
-    });
-  }
-};
+  };
 
+  // Function to start editing a todo
   const editTodo = (todoId, field, content) => {
     socket.emit("editTodo", todoId, field, content);
     setUpdateTodo({
@@ -257,6 +270,7 @@ const toggleComplete = async (todoId) => {
     });
   };
 
+  // Function to finish editing a todo and update it on the server
   const finishedEditTodo = async (todoId, type, content) => {
     try {
       const response = await axios.put(`${URL}todo`, {
@@ -287,10 +301,12 @@ const toggleComplete = async (todoId) => {
     }
   };
 
+  // Function to emit to Socket Server if todo has changed
   const handleTodoChange = (todoId, type, content) => {
     socket.emit("changedTodo", todoId, type, content);
   };
 
+  // Function to post a new Category to the database
   const postCategoryToDB = async () => {
     if (newCategory) {
       if (categories.includes(newCategory)) {
@@ -309,6 +325,7 @@ const toggleComplete = async (todoId) => {
     }
   };
 
+  // Function to add a new category
   const addCategory = async () => {
     if (newCategory) {
       if (categories.includes(newCategory)) {
@@ -347,6 +364,7 @@ const toggleComplete = async (todoId) => {
     }
   };
 
+  // Helper function to add a todo locally
   const addTodoLocally = (newTodoId, newTodo) => {
     setTodos((prevTodos) => {
       const updatedTodos = prevTodos.map((category) => {
@@ -369,36 +387,38 @@ const toggleComplete = async (todoId) => {
     });
   };
 
-    const deleteTodo = async (todoId) => {
-      try {
-          const response = await axios.delete(`${URL}todotable/${todoId}`);
-          if (response.status === 200) {
-              // Local update of todos after successful deletion
-              setTodos((prevTodos) => {
-                  const updatedTodos = prevTodos.map((category) => ({
-                      ...category,
-                      todos: category.todos.filter((todo) => todo.id !== todoId),
-                  }));
-                  return updatedTodos.filter(category => category.todos.length > 0);
-              });
+  // Function to handle the deletion of a todo
+  const deleteTodo = async (todoId) => {
+    try {
+      const response = await axios.delete(`${URL}todotable/${todoId}`);
+      if (response.status === 200) {
+        // Local update of todos after successful deletion
+        setTodos((prevTodos) => {
+          const updatedTodos = prevTodos.map((category) => ({
+            ...category,
+            todos: category.todos.filter((todo) => todo.id !== todoId),
+          }));
+          return updatedTodos.filter((category) => category.todos.length > 0);
+        });
 
-              // Broadcast an andere Clients
-              socket.emit('deleteTodo', todoId);
-          } else {
-              throw new Error('Failed to delete todo');
-          }
-      } catch (error) {
-          console.error('Error deleting todo', error);
+        // Broadcast an andere Clients
+        socket.emit("deleteTodo", todoId);
+      } else {
+        throw new Error("Failed to delete todo");
       }
+    } catch (error) {
+      console.error("Error deleting todo", error);
+    }
   };
 
   // Function to confirm and delete a todo
   const confirmAndDeleteTodo = (todoId) => {
     if (window.confirm("Are you sure you want to delete this task?")) {
-        deleteTodo(todoId);
+      deleteTodo(todoId);
     }
   };
 
+  // Function to add a new todo
   const addTodo = async () => {
     const existingTodo = todos.find((cat) =>
       cat.todos.some((todo) => todo.name === newTodo.name)
@@ -612,8 +632,13 @@ const toggleComplete = async (todoId) => {
                                 readonly={todo.isLocked}
                               />
                             </div>
-                            <button onClick={() => confirmAndDeleteTodo(todo.id)} className="delete-button">Delete</button>
-                            </div>
+                            <button
+                              onClick={() => confirmAndDeleteTodo(todo.id)}
+                              className="delete-button"
+                            >
+                              Delete
+                            </button>
+                          </div>
                           <div className="todo-text-duo-date">
                             <label className="todo-title">Due:</label>
                             <div

@@ -3,7 +3,7 @@
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql');
-const ioClient = require('socket.io-client'); // Added for Socket.io client
+const ioClient = require('socket.io-client'); 
 
 // Database connection info - used from environment variables
 var dbInfo = {
@@ -290,7 +290,6 @@ app.delete('/todo/:id', (req, res) => {
 // ###################### DATABASE PART END ######################
 
 // All requests to /static/... will be redirected to static files in the folder "public"
-// call it with: http://localhost:8080/static
 app.use('/static', express.static('public'))
 
 // Start the actual server
