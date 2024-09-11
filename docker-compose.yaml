@@ -4,7 +4,7 @@ services:
   server-1:
     build: server
     ports:
-      - "8080:8080"
+      - "8080"
     restart: always
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -12,7 +12,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_HOSTNAME: ${MYSQL_HOSTNAME}
       PORT: ${SERVER_PORT}
-      HOST: server-1
+      HOST: 0.0.0.0
       FRONTEND_URL: ${FRONTEND_URL}
     links:
       - todolistdb
@@ -20,31 +20,13 @@ services:
       - todolistdb
     networks:
       - loadbalancing
-
-  server-2:
-    build: server
-    ports:
-      - "8081:8080"
-    restart: always
-    environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_HOSTNAME: ${MYSQL_HOSTNAME}
-      PORT: ${SERVER_PORT}
-      HOST: server-2
-      FRONTEND_URL: ${FRONTEND_URL}
-    links:
-      - todolistdb
-    depends_on:
-      - todolistdb
-    networks:
-      - loadbalancing
+    deploy:
+      replicas: 2
 
   socket-server-1:
     build: socket-server
     ports:
-      - "9090:9090"
+      - "9090"
     restart: always
     environment:
       PORT: ${SOCKET_IO_PORT}
@@ -58,24 +40,8 @@ services:
       - todolistdb
     networks:
       - loadbalancing
-
-  socket-server-2:
-    build: socket-server
-    ports:
-      - "9091:9090"
-    restart: always
-    environment:
-      PORT: ${SOCKET_IO_PORT}
-      HOST: socket-server-2
-      FRONTEND_URL: ${FRONTEND_URL}
-      REDIS_PORT: ${REDIS_PORT}
-    links:
-      - todolistdb
-      - redis
-    depends_on:
-      - todolistdb
-    networks:
-      - loadbalancing
+    deploy:
+      replicas: 2
 
   todolistdb:
     build: db
@@ -122,9 +88,7 @@ services:
     depends_on:
       - frontend
       - server-1
-      - server-2
       - socket-server-1
-      - socket-server-2
     restart: always
 
   redis:
