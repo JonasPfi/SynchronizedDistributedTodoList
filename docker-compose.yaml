@@ -4,7 +4,7 @@ services:
   server-1:
     build: server
     ports:
-      - "8080"
+      - ${SERVER_PORT}
     restart: always
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -12,8 +12,9 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_HOSTNAME: ${MYSQL_HOSTNAME}
       PORT: ${SERVER_PORT}
-      HOST: 0.0.0.0
+      HOST: ${HOST}
       FRONTEND_URL: ${FRONTEND_URL}
+      SOCKET_IO_URL: ${SOCKET_IO_URL}
     links:
       - todolistdb
     depends_on:
@@ -26,11 +27,11 @@ services:
   socket-server-1:
     build: socket-server
     ports:
-      - "9090"
+      - ${SOCKET_IO_PORT}
     restart: always
     environment:
       PORT: ${SOCKET_IO_PORT}
-      HOST: ${SOCKET_IO_HOST}
+      HOST: ${HOST}
       FRONTEND_URL: ${FRONTEND_URL}
       REDIS_PORT: ${REDIS_PORT}
     links:
@@ -71,7 +72,7 @@ services:
         - VITE_NGINX_URL=${VITE_NGINX_URL}
         - VITE_FRONTEND_PORT=${FRONTEND_PORT}
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     environment:
       - VITE_NGINX_URL=${VITE_NGINX_URL}
     networks:
@@ -80,7 +81,7 @@ services:
   nginx:
     image: nginx:latest
     ports:
-      - "80:80"
+      - "${NGINX_PORT}:${NGINX_PORT}"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     networks:
@@ -94,7 +95,7 @@ services:
   redis:
     image: redis:alpine
     expose:
-      - "6379"
+      - "${REDIS_PORT}"
     networks:
       - loadbalancing
 

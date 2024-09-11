@@ -1,103 +1,102 @@
 # ToDoList Project
 
-Dieses Projekt verwendet Docker-Compose, um eine ToDo-Liste-Anwendung zu orchestrieren, die mehrere Microservices umfasst. Die Architektur besteht aus Backend-Servern, einem Socket-Server, einer Datenbank, Redis, einem Frontend, einem Nginx-Proxy und phpMyAdmin.
+This project uses Docker-Compose to orchestrate a ToDo list application that encompasses several microservices. The architecture consists of backend servers, a socket server, a database, Redis, a frontend, an Nginx proxy, and phpMyAdmin.
 
-## Verzeichnisstruktur
+## Directory Structure
 
-- `./server` - Quellcode für die Backend-Server.
-- `./socket-server` - Quellcode für die Socket-Server.
-- `./db` - Dockerfile und Konfiguration für die MySQL-Datenbank.
-- `./frontend` - Quellcode für das Frontend.
-- `./nginx` - Nginx-Konfiguration.
+- `./server` - Source code for the backend servers.
+- `./socket-server` - Source code for the socket servers.
+- `./db` - Dockerfile and configuration for the MySQL database.
+- `./frontend` - Source code for the frontend.
+- `./nginx` - Nginx configuration.
 
-## Dienste
+## Services
 
-- **server-1** und **server-2**: Backend-Server, die Anfragen bearbeiten und auf MySQL zugreifen.
-- **socket-server-1** und **socket-server-2**: Socket.IO-Server für Echtzeit-Kommunikation.
-- **todolistdb**: MySQL-Datenbank für die Anwendung.
-- **phpmyadmin**: Web-Interface für die Verwaltung der MySQL-Datenbank.
-- **frontend**: Frontend-Anwendung.
-- **nginx**: Nginx-Proxy, der Anfragen an die Backend-Server und das Frontend weiterleitet.
-- **redis**: Redis-Datenbank für die Speicherung von Echtzeit-Daten.
+- **server-1**: Backend servers that handle requests and access MySQL.
+- **socket-server-1**: Socket.IO server for real-time communication.
+- **todolistdb**: MySQL database for the application.
+- **phpmyadmin**: Web interface for managing the MySQL database.
+- **frontend**: Frontend application.
+- **nginx**: Nginx proxy that forwards requests to the backend servers and frontend.
+- **redis**: Redis database for real-time data storage.
 
-## Installation und Ausführung
+## Installation and Running
 
-### Voraussetzungen
+### Prerequisites
 
-- [Docker](https://www.docker.com/get-started) und [Docker Compose](https://docs.docker.com/compose/install/) müssen installiert sein.
+- [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/install/) must be installed.
 
-### Schritte
+### Steps
 
-1. **Repository klonen**
+1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/JonasPfi/verteilte-systeme-projekt.git
-   cd verteilte-systeme-projekt
+   git clone https://github.com/JonasPfi/SynchronizedDistributedTodoList.git
    ```
 
-2. **.env-Datei erstellen**
+2. **Create .env File**
 
-   Kopiere die `.env.example`-Datei und passe die Werte an deine Umgebung an:
+   Copy the `.env.example` file and adjust the values for your environment:
 
    ```bash
    cp .env.example .env
    ```
 
-3. **Docker-Container starten**
+3. **Start Docker Containers**
 
-   Starte die Docker-Container im Hintergrund:
+   Start the Docker containers in the background:
 
    ```bash
    docker-compose up -d
    ```
 
-4. **Überprüfen**
+4. **Check**
 
    - **phpMyAdmin**: [http://localhost:8085](http://localhost:8085)
    - **Nginx**: [http://localhost:80](http://localhost:80)
 
-5. **Logs ansehen**
+5. **View Logs**
 
-   Um die Logs eines bestimmten Containers zu sehen:
+   To view the logs of a specific container:
 
    ```bash
    docker-compose logs <SERVICE_NAME>
    ```
 
-   Beispiel:
+   Example:
 
    ```bash
    docker-compose logs frontend
    ```
 
-6. **Container stoppen**
+6. **Stop Containers**
 
-   Um alle Container zu stoppen und zu entfernen:
+   To stop and remove all containers:
 
    ```bash
    docker-compose down
    ```
 
-## Umgebungsvariablen
+## Environment Variables
 
-Die `.env`-Datei enthält folgende Variablen:
+The `.env` file contains the following variables:
 
-- `MYSQL_DATABASE` - Name der MySQL-Datenbank.
-- `MYSQL_USER` - Benutzername für die MySQL-Datenbank.
-- `MYSQL_PASSWORD` - Passwort für die MySQL-Datenbank.
-- `MYSQL_HOSTNAME` - Hostname für die MySQL-Datenbank.
-- `FRONTEND_PORT` - Port für das Frontend.
-- `FRONTEND_URL` - URL für das Frontend.
-- `SERVER_PORT` - Port für die Backend-Server.
-- `SERVER_URL` - URL für die Backend-Server.
-- `SOCKET_IO_PORT` - Port für die Socket.IO-Server.
-- `SOCKET_IO_URL` - URL für die Socket.IO-Server.
-- `VITE_NGINX_URL` - URL für Nginx.
-- `REDIS_PORT` - Port für Redis.
+- `MYSQL_DATABASE` - Name of the MySQL database.
+- `MYSQL_USER` - Username for the MySQL database.
+- `MYSQL_PASSWORD` - Password for the MySQL database.
+- `MYSQL_HOSTNAME` - Hostname for the MySQL database.
+- `FRONTEND_PORT` - Port for the frontend.
+- `FRONTEND_URL` - URL for the frontend.
+- `SERVER_PORT` - Port for the backend servers.
+- `SERVER_URL` - URL for the backend servers.
+- `SOCKET_IO_PORT` - Port for the Socket.IO servers.
+- `SOCKET_IO_URL` - URL for the Socket.IO servers.
+- `VITE_NGINX_URL` - URL for Nginx.
+- `REDIS_PORT` - Port for Redis.
 
-Ports müssen unter Umständen in der docker-compose.yaml & nginx.conf Datei angepasst werden!
+Ports may need to be adjusted in the docker-compose.yaml & nginx.conf files!
 
-## Mitwirkende
+## Contributors
 
 - Jonas Pfingstag 
 - Julian Schurr

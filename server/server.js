@@ -3,11 +3,10 @@
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql');
-const ioClient = require('socket.io-client'); // Added for Socket.io client
+const ioClient = require('socket.io-client'); 
 
 // Database connection info - used from environment variables
 var dbInfo = {
-    connectionLimit: 10,
     host: process.env.MYSQL_HOSTNAME,
     user: process.env.MYSQL_USER,
     password: process.env.MYSQL_PASSWORD,
@@ -32,6 +31,7 @@ connection.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
 const PORT = process.env.PORT || 8080;
 const HOST = process.env.HOST || '0.0.0.0';
 const FRONTEND_URL = process.env.FRONTEND_URL || `http://localhost:3000/`;
+const SOCKET_IO_URL = process.env.SOCKET_IO_URL || `http://socket-server-1:9090`;
 
 let lockedElements = {};
 
@@ -46,7 +46,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Create Socket.io client connection
-const socket = ioClient('http://socket-server-1:9090', {
+const socket = ioClient(SOCKET_IO_URL, {
     path: '/socket.io/',
     transports: ['websocket'],
     withCredentials: true
@@ -290,7 +290,6 @@ app.delete('/todo/:id', (req, res) => {
 // ###################### DATABASE PART END ######################
 
 // All requests to /static/... will be redirected to static files in the folder "public"
-// call it with: http://localhost:8080/static
 app.use('/static', express.static('public'))
 
 // Start the actual server
