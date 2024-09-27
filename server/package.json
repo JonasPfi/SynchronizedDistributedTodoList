@@ -8,7 +8,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.19",
+    "express": "^4.21",
     "mysql": "^2.18",
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5"
